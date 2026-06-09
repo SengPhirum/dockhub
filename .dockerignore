@@ -1,0 +1,11 @@
+.data
+.env
+.env.*
+.git
+.gitignore
+.nuxt
+.output
+node_modules
+npm-debug.log*
+Dockerfile*
+*.log
