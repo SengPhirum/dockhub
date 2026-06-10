@@ -22,13 +22,12 @@ function isActive(to: string) {
     <!-- wordmark -->
     <NuxtLink
       to="/"
-      class="flex items-center gap-2.5 px-4 h-16 shrink-0 border-b border-hull-soft"
+      class="flex h-18 shrink-0 items-center border-b border-hull-soft px-4 py-3"
       @click="emit('navigate')"
     >
-      <span class="sonar flex size-8 items-center justify-center rounded-lg bg-beacon/15 ring-1 ring-beacon/40">
-        <UIcon name="i-lucide-ship-wheel" class="size-5 text-beacon" />
+      <span class="flex w-full items-center justify-center px-3 py-2">
+        <DockHubLogo size="sm" class="max-w-full" />
       </span>
-      <span class="font-display text-lg font-semibold tracking-tight text-foam">DockHub</span>
     </NuxtLink>
 
     <!-- nav -->

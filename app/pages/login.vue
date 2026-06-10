@@ -16,7 +16,7 @@ async function submit() {
   error.value = ''
   try {
     await login(username.value, password.value)
-    toast.add({ title: 'Welcome to DockHub', icon: 'i-lucide-ship-wheel', color: 'primary' })
+    toast.add({ title: 'Welcome to DockHub', color: 'primary' })
     await navigateTo('/')
   } catch (e: any) {
     error.value = e?.data?.statusMessage || 'Invalid username or password'
@@ -30,10 +30,11 @@ async function submit() {
   <div class="w-full max-w-sm">
     <!-- wordmark + thesis -->
     <div class="mb-8 text-center">
-      <span class="sonar mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-beacon/15 ring-1 ring-beacon/40">
-        <UIcon name="i-lucide-ship-wheel" class="size-7 text-beacon" />
+      <span class="mx-auto mb-4 flex size-20 items-center justify-center">
+        <DockHubLogo variant="icon" class="size-20" />
       </span>
-      <h1 class="font-display text-3xl font-semibold tracking-tight">{{ config.public.appName }}</h1>
+      <DockHubLogo size="lg" class="mx-auto mb-3 max-w-full" />
+      <h1 class="sr-only">{{ config.public.appName }}</h1>
       <p class="mt-1.5 text-sm text-(--color-muted)">Run your Docker Swarm from one hub.</p>
     </div>
 

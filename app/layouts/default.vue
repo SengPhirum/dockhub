@@ -48,9 +48,14 @@ const config = useRuntimeConfig()
           @click="mobileOpen = true"
         />
 
-        <div class="flex items-center gap-2 text-sm">
-          <span class="dot dot-running" />
-          <span class="font-mono text-xs text-(--color-muted)">{{ config.public.appName }}</span>
+        <div class="flex min-w-0 items-center gap-3">
+          <DockHubLogo variant="icon" class="size-8 shrink-0 drop-shadow-[0_10px_18px_rgba(8,41,68,0.18)]" />
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 text-sm">
+              <span class="dot dot-running" />
+              <span class="truncate font-display text-sm font-semibold tracking-tight text-foam">{{ config.public.appName }}</span>
+            </div>
+          </div>
         </div>
 
         <div class="flex-1" />

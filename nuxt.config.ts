@@ -5,7 +5,8 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxt/ui',
-    '@vueuse/nuxt'
+    '@vueuse/nuxt',
+    '@vite-pwa/nuxt'
   ],
 
   css: ['~/assets/css/main.css'],
@@ -103,7 +104,55 @@ export default defineNuxtConfig({
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         { name: 'description', content: 'Run your Docker Swarm from one hub. A convenient, GitLab-backed Swarm management console.' },
-        { name: 'color-scheme', content: 'dark light' }
+        { name: 'color-scheme', content: 'dark light' },
+        { name: 'theme-color', content: '#0066ff' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-title', content: 'DockHub' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
+        { name: 'msapplication-config', content: '/browserconfig.xml' },
+        { name: 'msapplication-TileColor', content: '#0066ff' }
+      ],
+      link: [
+        { rel: 'icon', href: '/favicon.ico', sizes: 'any' },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
+        { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' }
+      ]
+    }
+  },
+
+  pwa: {
+    registerType: 'autoUpdate',
+    includeAssets: [
+      'favicon.ico',
+      'favicon-16x16.png',
+      'favicon-32x32.png',
+      'favicon-48x48.png',
+      'apple-touch-icon.png',
+      'browserconfig.xml'
+    ],
+    manifest: {
+      name: 'DockHub',
+      short_name: 'DockHub',
+      description: 'DockHub - Docker Swarm and container management dashboard.',
+      start_url: '/',
+      scope: '/',
+      display: 'standalone',
+      orientation: 'portrait-primary',
+      background_color: '#ffffff',
+      theme_color: '#0066ff',
+      categories: ['developer', 'productivity', 'utilities'],
+      icons: [
+        { src: '/icons/icon-72x72.png', sizes: '72x72', type: 'image/png', purpose: 'any' },
+        { src: '/icons/icon-96x96.png', sizes: '96x96', type: 'image/png', purpose: 'any' },
+        { src: '/icons/icon-128x128.png', sizes: '128x128', type: 'image/png', purpose: 'any' },
+        { src: '/icons/icon-144x144.png', sizes: '144x144', type: 'image/png', purpose: 'any' },
+        { src: '/icons/icon-152x152.png', sizes: '152x152', type: 'image/png', purpose: 'any' },
+        { src: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: '/icons/icon-384x384.png', sizes: '384x384', type: 'image/png', purpose: 'any' },
+        { src: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+        { src: '/icons/maskable-icon-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+        { src: '/icons/maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
       ]
     }
   }
