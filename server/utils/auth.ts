@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
 import { SignJWT, jwtVerify } from 'jose'
 import type { Role, UserSource } from './store'
+import { lookupApiTokenUser } from './store'
 
 export interface SessionUser {
   id: string
@@ -41,6 +42,11 @@ export function clearAuthSession(event: H3Event) {
 }
 
 export async function readSession(event: H3Event): Promise<SessionUser | null> {
+  const authHeader = getRequestHeader(event, 'authorization')
+  if (authHeader?.startsWith('Bearer ')) {
+    const user = await lookupApiTokenUser(authHeader.slice(7))
+    if (user) return user
+  }
   const token = getCookie(event, COOKIE)
   if (!token) return null
   try {

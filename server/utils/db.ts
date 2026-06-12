@@ -64,6 +64,18 @@ function runMigrations(db: Database.Database) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit(ts DESC);
+
+    CREATE TABLE IF NOT EXISTS api_tokens (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      token_hash TEXT NOT NULL,
+      prefix TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      last_used TEXT
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_api_tokens_hash ON api_tokens(token_hash);
   `)
 }
 

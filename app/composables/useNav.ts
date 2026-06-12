@@ -3,6 +3,7 @@ export interface NavItem {
   to: string
   icon: string
   minRole?: 'viewer' | 'operator' | 'admin'
+  target?: string
 }
 export interface NavGroup {
   label: string
@@ -44,6 +45,14 @@ export function useNav(): NavGroup[] {
         { label: 'Users',      to: '/users',      icon: 'i-lucide-users',        minRole: 'admin' },
         { label: 'Audit log',  to: '/audit',      icon: 'i-lucide-scroll-text',  minRole: 'admin' },
         { label: 'Settings',   to: '/settings',   icon: 'i-lucide-settings',     minRole: 'admin' }
+      ]
+    },
+    {
+      label: 'Documentation',
+      items: [
+        { label: 'User Manual',    to: '/docs/manual',        icon: 'i-lucide-book-open' },
+        { label: 'Configuration',  to: '/docs/configuration', icon: 'i-lucide-sliders-horizontal' },
+        { label: 'API Reference',  to: '/api/swagger',        icon: 'i-lucide-braces', target: '_blank' }
       ]
     }
   ]

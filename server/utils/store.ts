@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs'
 import { nanoid } from 'nanoid'
+import { createHash, randomBytes } from 'node:crypto'
 
 export type Role = 'admin' | 'operator' | 'viewer'
 export type UserSource = 'local' | 'ldap' | 'oidc'
@@ -298,4 +299,64 @@ export async function setAppSetting(key: string, value: string, actor: string): 
 
 export async function deleteAppSetting(key: string): Promise<void> {
   getDb().prepare('DELETE FROM app_settings WHERE key = ?').run(key)
+}
+
+// ─── api tokens ───────────────────────────────────────────────────────────────
+
+export interface ApiToken {
+  id: string
+  userId: string
+  name: string
+  prefix: string
+  createdAt: string
+  lastUsed?: string
+}
+
+export async function listApiTokens(userId: string): Promise<ApiToken[]> {
+  return (getDb().prepare('SELECT * FROM api_tokens WHERE user_id = ? ORDER BY created_at DESC').all(userId) as any[]).map((r) => ({
+    id: r.id,
+    userId: r.user_id,
+    name: r.name,
+    prefix: r.prefix,
+    createdAt: r.created_at,
+    lastUsed: r.last_used ?? undefined
+  }))
+}
+
+export async function createApiToken(userId: string, name: string): Promise<ApiToken & { token: string }> {
+  const raw = 'dhub_' + randomBytes(24).toString('base64url')
+  const hash = createHash('sha256').update(raw).digest('hex')
+  const prefix = raw.slice(5, 13)
+  const id = nanoid()
+  const createdAt = new Date().toISOString()
+  getDb().prepare(
+    'INSERT INTO api_tokens (id, user_id, name, token_hash, prefix, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+  ).run(id, userId, name, hash, prefix, createdAt)
+  return { id, userId, name, prefix, createdAt, token: raw }
+}
+
+export async function deleteApiToken(id: string, userId: string): Promise<void> {
+  const result = getDb().prepare('DELETE FROM api_tokens WHERE id = ? AND user_id = ?').run(id, userId)
+  if ((result as any).changes === 0) throw createError({ statusCode: 404, statusMessage: 'Token not found' })
+}
+
+export async function lookupApiTokenUser(raw: string): Promise<{ id: string; username: string; displayName: string; role: Role; source: UserSource } | null> {
+  if (!raw.startsWith('dhub_')) return null
+  const hash = createHash('sha256').update(raw).digest('hex')
+  const db = getDb()
+  const row = db.prepare(`
+    SELECT t.user_id, u.username, u.display_name, u.role, u.source
+    FROM api_tokens t
+    JOIN users u ON u.id = t.user_id
+    WHERE t.token_hash = ?
+  `).get(hash) as any
+  if (!row) return null
+  db.prepare('UPDATE api_tokens SET last_used = ? WHERE token_hash = ?').run(new Date().toISOString(), hash)
+  return {
+    id: row.user_id,
+    username: row.username,
+    displayName: row.display_name,
+    role: row.role as Role,
+    source: row.source as UserSource
+  }
 }
