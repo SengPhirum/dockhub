@@ -722,7 +722,7 @@ watch(activeSection, (val) => {
       </USlideover>
 
       <!-- Desktop sidebar -->
-      <aside class="docs-sidebar hidden lg:block">
+      <aside class="docs-sidebar">
         <DocsSidebar
           :nav-config="navConfig"
           :active-section="activeSection"
@@ -865,21 +865,6 @@ watch(activeSection, (val) => {
             </div>
           </div>
 
-          <!-- Footer -->
-          <footer class="doc-footer">
-            <div class="doc-footer-inner">
-              <div class="flex items-center gap-2">
-                <DockHubLogo variant="icon" class="size-5 opacity-50" />
-                <span class="text-xs text-faint">DockHub — Docker Swarm Management Console</span>
-              </div>
-              <p class="text-xs text-faint">
-                Made with <span class="text-running mx-0.5">&#9829;</span> by
-                <a href="https://github.com/sengphirum" target="_blank" rel="noopener noreferrer" class="font-semibold text-beacon hover:text-foam transition-colors ml-0.5">
-                  Seng Phirum
-                </a>
-              </p>
-            </div>
-          </footer>
         </div>
 
         <!-- ── USER MANUAL ──────────────────────────────────────────────── -->
@@ -969,18 +954,6 @@ watch(activeSection, (val) => {
             </section>
           </div>
 
-          <footer class="doc-footer">
-            <div class="doc-footer-inner">
-              <div class="flex items-center gap-2">
-                <DockHubLogo variant="icon" class="size-5 opacity-50" />
-                <span class="text-xs text-faint">DockHub — Docker Swarm Management Console</span>
-              </div>
-              <p class="text-xs text-faint">
-                Made with <span class="text-running mx-0.5">&#9829;</span> by
-                <a href="https://github.com/sengphirum" target="_blank" rel="noopener noreferrer" class="font-semibold text-beacon hover:text-foam transition-colors ml-0.5">Seng Phirum</a>
-              </p>
-            </div>
-          </footer>
         </div>
 
         <!-- ── CONFIGURATION ────────────────────────────────────────────── -->
@@ -1180,18 +1153,6 @@ watch(activeSection, (val) => {
             </section>
           </div>
 
-          <footer class="doc-footer">
-            <div class="doc-footer-inner">
-              <div class="flex items-center gap-2">
-                <DockHubLogo variant="icon" class="size-5 opacity-50" />
-                <span class="text-xs text-faint">DockHub — Docker Swarm Management Console</span>
-              </div>
-              <p class="text-xs text-faint">
-                Made with <span class="text-running mx-0.5">&#9829;</span> by
-                <a href="https://github.com/sengphirum" target="_blank" rel="noopener noreferrer" class="font-semibold text-beacon hover:text-foam transition-colors ml-0.5">Seng Phirum</a>
-              </p>
-            </div>
-          </footer>
         </div>
 
         <!-- ── API REFERENCE ────────────────────────────────────────────── -->
@@ -1234,6 +1195,28 @@ watch(activeSection, (val) => {
         </div>
       </main>
     </div>
+
+    <!-- ── Global fixed footer ───────────────────────────────────────────── -->
+    <footer class="docs-global-footer">
+      <div class="docs-global-footer-inner">
+        <div class="flex items-center gap-2">
+          <DockHubLogo variant="icon" class="size-4 opacity-50" />
+          <span class="text-xs text-faint">DockHub — Docker Swarm Management Console</span>
+        </div>
+        <p class="text-xs text-faint flex items-center gap-1">
+          Made with <span class="text-running">&#9829;</span> by
+          <a
+            href="https://github.com/sengphirum"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-semibold text-beacon hover:text-foam transition-colors flex items-center gap-1 ml-0.5"
+          >
+            <UIcon name="i-lucide-github" class="size-3.5" />
+            Seng Phirum
+          </a>
+        </p>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -1271,16 +1254,18 @@ watch(activeSection, (val) => {
 
 /* ── Body: sidebar + main ─────────────────────────────────────────────────── */
 .docs-body {
-  display: flex;
   flex: 1;
-  height: calc(100dvh - 52px);
+  height: calc(100dvh - 52px - 44px);
   overflow: hidden;
 }
 
+@media (min-width: 1024px) {
+  .docs-body { padding-left: 220px; }
+}
+
 .docs-sidebar {
+  display: none;
   width: 220px;
-  flex-shrink: 0;
-  height: 100%;
   overflow-y: auto;
   border-right: 1px solid var(--color-hull-soft);
   background: var(--color-abyss);
@@ -1288,12 +1273,47 @@ watch(activeSection, (val) => {
   scrollbar-color: var(--color-hull) transparent;
 }
 
+@media (min-width: 1024px) {
+  .docs-sidebar {
+    display: block;
+    position: fixed;
+    top: 52px;
+    left: 0;
+    bottom: 44px;
+    width: 220px;
+    z-index: 20;
+  }
+}
+
 .docs-main {
-  flex: 1;
+  height: 100%;
   min-width: 0;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--color-hull) transparent;
+}
+
+/* ── Global fixed footer ──────────────────────────────────────────────────── */
+.docs-global-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  z-index: 25;
+  border-top: 1px solid var(--color-hull-soft);
+  background: color-mix(in srgb, var(--color-abyss) 92%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.docs-global-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 1.25rem;
+  gap: 1rem;
 }
 
 .docs-main--api {
@@ -1304,7 +1324,7 @@ watch(activeSection, (val) => {
 
 /* ── Section wrappers ─────────────────────────────────────────────────────── */
 .section-wrap {
-  padding: 2rem 1.5rem 2rem;
+  padding: 2rem 1.5rem 5rem;
   width: 100%;
 }
 
@@ -1313,11 +1333,11 @@ watch(activeSection, (val) => {
 }
 
 @media (min-width: 768px) {
-  .section-wrap { padding: 2.5rem 2.5rem 2.5rem; }
+  .section-wrap { padding: 2.5rem 2.5rem 5rem; }
 }
 
 @media (min-width: 1280px) {
-  .section-wrap { padding: 2.75rem 3rem 3rem; }
+  .section-wrap { padding: 2.75rem 3rem 5rem; }
 }
 
 /* Slightly larger base prose text inside doc sections */
@@ -1540,17 +1560,4 @@ watch(activeSection, (val) => {
 }
 
 /* ── Footer ───────────────────────────────────────────────────────────────── */
-.doc-footer {
-  margin-top: 4rem;
-  padding: 1.5rem 0 2.5rem;
-  border-top: 1px solid var(--color-hull-soft);
-}
-
-.doc-footer-inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
 </style>

@@ -51,17 +51,5 @@ const emit = defineEmits<{
       </template>
     </nav>
 
-    <!-- Bottom github link -->
-    <div class="mt-3 pt-3 border-t border-hull-soft">
-      <a
-        href="https://github.com/sengphirum"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs text-faint hover:text-foam hover:bg-hull/50 transition-colors"
-      >
-        <UIcon name="i-lucide-github" class="size-3.5" />
-        <span>sengphirum</span>
-      </a>
-    </div>
   </div>
 </template>
