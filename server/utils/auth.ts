@@ -31,7 +31,11 @@ export async function setSession(event: H3Event, user: SessionUser) {
   setCookie(event, COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    // Only mark Secure when actually served over HTTPS - swarm deployments are
+    // often reached over plain HTTP via IP (e.g. http://host:3000), and a
+    // Secure cookie set there is silently dropped by the browser, breaking
+    // every subsequent authenticated request with a 401.
+    secure: getRequestProtocol(event) === 'https',
     path: '/',
     maxAge: 60 * 60 * 12
   })

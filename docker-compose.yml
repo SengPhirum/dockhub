@@ -1,4 +1,5 @@
 # Deploy DockHub itself as a swarm service.
+#   ./release.sh
 #   docker stack deploy -c docker-compose.yml dockhub
 #
 # It must be scheduled on a MANAGER node (placement constraint below) so it
@@ -8,12 +9,14 @@ version: "3.8"
 
 services:
   dockhub:
-    image: dockhub:latest          # build locally: docker build -t dockhub:latest .
+    image: registry.kdsb.com.kh/dockhub:latest
     ports:
       - "3000:3000"
     environment:
       NUXT_JWT_SECRET: "change-me-to-a-long-random-string"
       NUXT_DOCKER_SOCKET_PATH: "/var/run/docker.sock"
+      # Shared secret with the dockhub-agent service below - keep them in sync.
+      NUXT_AGENT_TOKEN: "change-me-to-a-long-random-string"
       # LDAP (optional)
       NUXT_LDAP_ENABLED: "false"
       # OIDC SSO (optional)
@@ -41,6 +44,22 @@ services:
         condition: on-failure
       update_config:
         order: start-first
+
+  # Reports live CPU/memory/disk usage for the node it runs on. Deployed
+  # globally (one task per node, managers included) since dockhub only has
+  # direct Docker API access to its own node - this is how it learns the
+  # usage of every other node without exposing the Docker API over TCP.
+  dockhub-agent:
+    image: registry.kdsb.com.kh/dockhub-agent:latest
+    environment:
+      DOCKHUB_AGENT_URL: "http://dockhub:3000/api/agent/report"
+      DOCKHUB_AGENT_TOKEN: "change-me-to-a-long-random-string"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
 
 volumes:
   dockhub-data:

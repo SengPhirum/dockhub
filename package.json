@@ -1,6 +1,6 @@
 {
   "name": "dockhub",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "private": true,
   "description": "DockHub - a convenient, GitLab-backed Docker Swarm management console",
   "author": "Seng Phirum <sengphirum143@gmail.com>",
@@ -8,6 +8,10 @@
   "type": "module",
   "scripts": {
     "dev": "nuxt dev",
+    "dev:swarm": "node scripts/dev-swarm.mjs",
+    "dev:swarm:full": "node scripts/dev-swarm.mjs --profile full up --build",
+    "dev:swarm:down": "node scripts/dev-swarm.mjs down",
+    "dev:swarm:reset": "node scripts/dev-swarm.mjs down -v",
     "build": "nuxt build",
     "preview": "nuxt preview",
     "start": "node .output/server/index.mjs",

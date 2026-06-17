@@ -78,7 +78,7 @@ export async function oidcBeginLogin(event: H3Event): Promise<string> {
   setCookie(event, TXN_COOKIE, JSON.stringify({ state, nonce, verifier }), {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: getRequestProtocol(event) === 'https',
     path: '/',
     maxAge: 600
   })

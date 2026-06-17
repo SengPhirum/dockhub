@@ -37,6 +37,41 @@ password: admin
 
 Override the seed with `NUXT_ADMIN_USERNAME` / `NUXT_ADMIN_PASSWORD`, and **change it immediately** in production. Always set a strong `NUXT_JWT_SECRET`.
 
+### Local swarm development
+
+To run DockHub against a local disposable swarm instead of your host Docker engine:
+
+```bash
+npm run dev:swarm
+```
+
+This uses [`docker-compose.dev.yml`](./docker-compose.dev.yml) to start:
+
+- `swarm-manager` - lightweight Docker-in-Docker container with Node installed, initialized as the swarm manager.
+- `swarm-worker-1` - lightweight Docker-in-Docker container joined as a worker.
+- `swarm-worker-2` - optional second worker, enabled only for full cluster tests.
+
+DockHub runs inside `swarm-manager` with `npm run dev` and is available at <http://localhost:3000>. Your local project is bind-mounted into `/workspace`, while Linux `node_modules` and `.nuxt` live in named Docker volumes, so file changes on your machine hot reload the app without mixing Windows and Linux dependencies. The compose file reads your local `.env`, then forces `NUXT_DOCKER_SOCKET_PATH=/var/run/docker.sock` so the app controls the manager container's Docker daemon. This dev-swarm path also sets `NUXT_SSR=false` for browser-first hot reload; normal local dev and production builds keep SSR enabled.
+
+By default the local swarm starts only one worker to keep laptops light. Run the full profile when you need manager-plus-two-worker scheduling coverage:
+
+```bash
+npm run dev:swarm:full
+```
+
+Set `DOCKER_DIND_IMAGE` in `.env` to pin the Docker Engine image used by the disposable swarm, for example `docker:29-dind`.
+
+Useful commands:
+
+```bash
+npm run dev:swarm -- ps
+npm run dev:swarm -- logs -f swarm-manager
+npm run dev:swarm:down
+npm run dev:swarm:reset  # removes the disposable swarm volumes
+```
+
+This workflow requires Docker Desktop or a Docker Engine that supports privileged containers.
+
 ## Production build
 
 ```bash
@@ -46,14 +81,37 @@ node .output/server/index.mjs
 
 ## Deploy onto the swarm itself
 
-DockHub ships with a `Dockerfile` and a `docker-compose.yml` that runs it as a swarm service, pinned to a manager node:
+DockHub ships with a `Dockerfile` and a `docker-compose.yml` that runs it as a swarm service, pinned to a manager node. Build and publish the image to the local registry first:
 
 ```bash
-docker build -t dockhub:latest .
+./release.sh
+```
+
+By default this bumps the patch version, writes release notes to `release-notes/v<version>.md` and `RELEASE_NOTES.md`, then pushes:
+
+```text
+registry.kdsb.com.kh/dockhub:<version>
+registry.kdsb.com.kh/dockhub:latest
+```
+
+Useful release variants:
+
+```bash
+./release.sh --minor
+./release.sh --major
+./release.sh --version 1.2.0
+./release.sh --no-bump          # test publish without changing package version
+./release.sh --no-bump --no-push
+./release.sh --tag-prefix v     # publish :v1.2.0 instead of :1.2.0
+```
+
+Then deploy the published image:
+
+```bash
 docker stack deploy -c docker-compose.yml dockhub
 ```
 
-The compose file mounts the Docker socket read-only and a named volume for DockHub's own database, with a `node.role == manager` placement constraint.
+The compose file uses `registry.kdsb.com.kh/dockhub:latest`, mounts the Docker socket read-only, and keeps a named volume for DockHub's own database, with a `node.role == manager` placement constraint.
 
 If your network injects an internal or self-signed root CA, pass that CA into the build so npm can trust it:
 
@@ -61,10 +119,10 @@ If your network injects an internal or self-signed root CA, pass that CA into th
 docker build --secret id=npm_ca,src=company-root-ca.crt -t dockhub:latest .
 ```
 
-On networks that intercept TLS, the Docker build defaults to relaxed npm certificate validation so the image can still be built. If you want to force strict validation during the build, use:
+On networks that intercept TLS, the Docker build defaults to relaxed npm/Node certificate validation so the image can still be built. If you want to force strict validation during the build, use:
 
 ```bash
-docker build --build-arg NPM_CONFIG_STRICT_SSL=true -t dockhub:latest .
+docker build --build-arg NPM_CONFIG_STRICT_SSL=true --build-arg NODE_TLS_REJECT_UNAUTHORIZED=1 -t registry.kdsb.com.kh/dockhub:latest .
 ```
 
 Keeping strict validation disabled is convenient on trusted corporate networks, but the CA-secret approach above is the safer long-term option.

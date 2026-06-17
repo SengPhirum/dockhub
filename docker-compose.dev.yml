@@ -1,0 +1,100 @@
+# Local development swarm:
+#   npm run dev:swarm
+#
+# Default footprint: one manager running DockHub and one worker. Add the
+# optional second worker for broader scheduling tests with:
+#   npm run dev:swarm:full
+
+x-swarm-common: &swarm-common
+  privileged: true
+  init: true
+  stop_grace_period: 45s
+  networks:
+    - dockhub-dev
+
+x-worker-node: &worker-node
+  <<: *swarm-common
+  image: ${DOCKER_DIND_IMAGE:-docker:29-dind}
+  entrypoint: ["/bin/sh", "/usr/local/bin/dockhub-swarm-dev"]
+  command: ["worker"]
+  depends_on:
+    - swarm-manager
+  environment:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKERD_ARGS: "--log-level=warn --iptables=false --ip-masq=false --tls=false --host=tcp://0.0.0.0:2375"
+    SWARM_MANAGER_HOST: "swarm-manager"
+    # swarm-entrypoint.sh runs the same agent/index.mjs script directly
+    # against this node's local Docker socket, reporting to the manager's
+    # app - same role as the dockhub-agent global service in prod.
+    DOCKHUB_AGENT_URL: "http://swarm-manager:3000/api/agent/report"
+  volumes:
+    - ./docker/dev/swarm-entrypoint.sh:/usr/local/bin/dockhub-swarm-dev:ro
+    - ./agent:/agent:ro
+    - dockhub-swarm-state:/swarm
+
+services:
+  swarm-manager:
+    <<: *swarm-common
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile.ubuntu-swarm
+      args:
+        DOCKER_DIND_IMAGE: ${DOCKER_DIND_IMAGE:-docker:29-dind}
+    hostname: swarm-manager
+    command: ["manager"]
+    env_file:
+      - .env
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+      DOCKERD_ARGS: "--log-level=warn --iptables=false --ip-masq=false --tls=false --host=tcp://0.0.0.0:2375"
+      DOCKHUB_RUN_APP: "true"
+      NODE_ENV: "development"
+      HOST: "0.0.0.0"
+      PORT: "3000"
+      NUXT_HOST: "0.0.0.0"
+      NUXT_PORT: "3000"
+      NUXT_SSR: "false"
+      NUXT_DOCKER_SOCKET_PATH: "/var/run/docker.sock"
+      NUXT_DOCKER_HOST: ""
+      NUXT_DOCKER_PORT: ""
+      CHOKIDAR_USEPOLLING: "true"
+      VITE_USE_POLLING: "true"
+      WATCHPACK_POLLING: "true"
+      # The manager's dockhub-agent process talks to the app in the same container.
+      DOCKHUB_AGENT_URL: "http://localhost:3000/api/agent/report"
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/workspace
+      - ./agent:/agent:ro
+      - dockhub-manager-docker:/var/lib/docker
+      - dockhub-swarm-state:/swarm
+      - dockhub-node-modules:/workspace/node_modules
+      - dockhub-nuxt:/workspace/.nuxt
+
+  swarm-worker-1:
+    <<: *worker-node
+    hostname: swarm-worker-1
+    volumes:
+      - ./docker/dev/swarm-entrypoint.sh:/usr/local/bin/dockhub-swarm-dev:ro
+      - ./agent:/agent:ro
+      - dockhub-swarm-state:/swarm
+
+  swarm-worker-2:
+    <<: *worker-node
+    profiles:
+      - full
+    hostname: swarm-worker-2
+    volumes:
+      - ./docker/dev/swarm-entrypoint.sh:/usr/local/bin/dockhub-swarm-dev:ro
+      - ./agent:/agent:ro
+      - dockhub-swarm-state:/swarm
+
+networks:
+  dockhub-dev:
+
+volumes:
+  dockhub-manager-docker:
+  dockhub-swarm-state:
+  dockhub-node-modules:
+  dockhub-nuxt:

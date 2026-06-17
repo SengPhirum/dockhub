@@ -8,6 +8,7 @@ const isDocsBuild = process.env.NUXT_STATIC_DOCS === 'true'
 // Set NUXT_DOCS_BASE_URL to your GitHub Pages subdirectory, e.g. /dockhub/
 // Leave empty (/) for a custom domain or user/org site.
 const docsBaseURL = process.env.NUXT_DOCS_BASE_URL || '/'
+const ssrEnabled = process.env.NUXT_SSR !== 'false'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-06-01',
@@ -39,8 +40,8 @@ export default defineNuxtConfig({
     serverBundle: { collections: ['lucide'] }
   },
 
-  // SSR is on; the auth shell is rendered client-aware via middleware.
-  ssr: true,
+  // SSR is on by default; dev-swarm can opt into SPA mode with NUXT_SSR=false.
+  ssr: ssrEnabled,
 
   runtimeConfig: {
     // --- Server-only secrets (override with NUXT_* env vars in production) ---
@@ -55,6 +56,12 @@ export default defineNuxtConfig({
       ca: process.env.NUXT_DOCKER_CA || '',
       cert: process.env.NUXT_DOCKER_CERT || '',
       key: process.env.NUXT_DOCKER_KEY || ''
+    },
+    // Shared secret the dockhub-agent (global service, one task per swarm
+    // node) presents when posting per-node usage stats back to this app.
+    agent: {
+      token: process.env.NUXT_AGENT_TOKEN || '',
+      staleAfterMs: Number(process.env.NUXT_AGENT_STALE_MS || 20000)
     },
 
     // LDAP / Active Directory
