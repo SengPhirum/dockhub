@@ -22,9 +22,14 @@ const networkSortOptions = [
   { label: 'Subnet', value: 'subnet' },
   { label: 'Created', value: 'created' }
 ]
-const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('networks', data, {
+const networkFilterOptions = [
+  { key: 'driver', label: 'Driver', getValue: (n: any) => n.driver },
+  { key: 'scope', label: 'Scope', getValue: (n: any) => n.scope }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions, filters, facets } = useListControls('networks', data, {
   sortOptions: networkSortOptions,
-  defaultSortBy: 'name'
+  defaultSortBy: 'name',
+  filterOptions: networkFilterOptions
 })
 
 const open = ref(false)
@@ -77,7 +82,9 @@ const SYSTEM = ['bridge', 'host', 'none', 'docker_gwbridge', 'ingress']
       v-model:search="search"
       v-model:sort-by="sortBy"
       v-model:sort-dir="sortDir"
+      v-model:filters="filters"
       :sort-options="sortOptions"
+      :facets="facets"
       placeholder="Search networks"
     />
 

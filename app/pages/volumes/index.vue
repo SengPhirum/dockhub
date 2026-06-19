@@ -10,9 +10,14 @@ const volumeSortOptions = [
   { label: 'Created', value: 'created' },
   { label: 'Mountpoint', value: 'mountpoint' }
 ]
-const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('volumes', data, {
+const volumeFilterOptions = [
+  { key: 'driver', label: 'Driver', getValue: (v: any) => v.driver },
+  { key: 'scope', label: 'Scope', getValue: (v: any) => v.scope }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions, filters, facets } = useListControls('volumes', data, {
   sortOptions: volumeSortOptions,
-  defaultSortBy: 'name'
+  defaultSortBy: 'name',
+  filterOptions: volumeFilterOptions
 })
 
 const open = ref(false)
@@ -50,7 +55,9 @@ async function remove(v: any) {
       v-model:search="search"
       v-model:sort-by="sortBy"
       v-model:sort-dir="sortDir"
+      v-model:filters="filters"
       :sort-options="sortOptions"
+      :facets="facets"
       placeholder="Search volumes"
     />
 

@@ -9,9 +9,13 @@ const configSortOptions = [
   { label: 'Created', value: 'created' },
   { label: 'Updated', value: 'updated' }
 ]
-const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('configs', data, {
+const configFilterOptions = [
+  { key: 'stack', label: 'Stack', getValue: (c: any) => c.stack || 'standalone' }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions, filters, facets } = useListControls('configs', data, {
   sortOptions: configSortOptions,
-  defaultSortBy: 'name'
+  defaultSortBy: 'name',
+  filterOptions: configFilterOptions
 })
 
 const open = ref(false)
@@ -62,7 +66,9 @@ async function remove(c: any) {
       v-model:search="search"
       v-model:sort-by="sortBy"
       v-model:sort-dir="sortDir"
+      v-model:filters="filters"
       :sort-options="sortOptions"
+      :facets="facets"
       placeholder="Search configs"
     />
 

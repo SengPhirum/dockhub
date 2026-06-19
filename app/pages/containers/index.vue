@@ -20,9 +20,13 @@ const containerSortOptions = [
   { label: 'Status', value: 'status' },
   { label: 'Created', value: 'created' }
 ]
-const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('containers', data, {
+const containerFilterOptions = [
+  { key: 'state', label: 'State', getValue: (c: any) => c.state }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions, filters, facets } = useListControls('containers', data, {
   sortOptions: containerSortOptions,
-  defaultSortBy: 'name'
+  defaultSortBy: 'name',
+  filterOptions: containerFilterOptions
 })
 
 const logsOpen = ref(false)
@@ -74,7 +78,9 @@ function menu(c: any) {
       v-model:search="search"
       v-model:sort-by="sortBy"
       v-model:sort-dir="sortDir"
+      v-model:filters="filters"
       :sort-options="sortOptions"
+      :facets="facets"
       placeholder="Search containers"
     />
 

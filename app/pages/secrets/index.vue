@@ -9,9 +9,13 @@ const secretSortOptions = [
   { label: 'Created', value: 'created' },
   { label: 'Updated', value: 'updated' }
 ]
-const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('secrets', data, {
+const secretFilterOptions = [
+  { key: 'stack', label: 'Stack', getValue: (s: any) => s.stack || 'standalone' }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions, filters, facets } = useListControls('secrets', data, {
   sortOptions: secretSortOptions,
-  defaultSortBy: 'name'
+  defaultSortBy: 'name',
+  filterOptions: secretFilterOptions
 })
 
 const open = ref(false)
@@ -54,7 +58,9 @@ async function remove(s: any) {
       v-model:search="search"
       v-model:sort-by="sortBy"
       v-model:sort-dir="sortDir"
+      v-model:filters="filters"
       :sort-options="sortOptions"
+      :facets="facets"
       placeholder="Search secrets"
     />
 

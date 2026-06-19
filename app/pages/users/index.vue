@@ -14,9 +14,14 @@ const userSortOptions = [
   { label: 'Created', value: 'createdAt' },
   { label: 'Last login', value: 'lastLogin' }
 ]
-const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('users', data, {
+const userFilterOptions = [
+  { key: 'role', label: 'Role', getValue: (u: any) => u.role },
+  { key: 'source', label: 'Source', getValue: (u: any) => u.source }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions, filters, facets } = useListControls('users', data, {
   sortOptions: userSortOptions,
-  defaultSortBy: 'displayName'
+  defaultSortBy: 'displayName',
+  filterOptions: userFilterOptions
 })
 
 const ROLES = ['viewer', 'operator', 'admin'] as const
@@ -123,7 +128,9 @@ async function confirmDelete() {
       v-model:search="search"
       v-model:sort-by="sortBy"
       v-model:sort-dir="sortDir"
+      v-model:filters="filters"
       :sort-options="sortOptions"
+      :facets="facets"
       placeholder="Search users"
     />
 

@@ -22,7 +22,7 @@ export interface UserPreferences {
   theme: 'system' | 'dark' | 'light'
   refreshInterval: number   // seconds; 0 = manual
   density: 'default' | 'compact' | 'comfortable'
-  lists: Record<string, { sortBy: string; sortDir: 'asc' | 'desc' }>
+  lists: Record<string, { sortBy: string; sortDir: 'asc' | 'desc'; filters?: Record<string, string[]> }>
 }
 
 export interface AuditEntry {
@@ -240,9 +240,21 @@ function sanitizeListPreferences(input: any): UserPreferences['lists'] {
     if (!value || typeof value !== 'object') continue
     const sortBy = String((value as any).sortBy || '')
     const sortDir = (value as any).sortDir === 'desc' ? 'desc' : 'asc'
-    if (key && sortBy) lists[key] = { sortBy, sortDir }
+    const filters = sanitizeListFilters((value as any).filters)
+    if (key && sortBy) lists[key] = { sortBy, sortDir, ...(filters ? { filters } : {}) }
   }
   return lists
+}
+
+function sanitizeListFilters(input: any): Record<string, string[]> | undefined {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return undefined
+  const filters: Record<string, string[]> = {}
+  for (const [key, value] of Object.entries(input)) {
+    if (!key || !Array.isArray(value)) continue
+    const values = value.filter((v) => typeof v === 'string')
+    if (values.length) filters[key] = values
+  }
+  return Object.keys(filters).length ? filters : undefined
 }
 
 export async function updateUserPreferences(userId: string, patch: Partial<UserPreferences>): Promise<UserPreferences> {

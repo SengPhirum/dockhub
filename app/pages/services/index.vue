@@ -26,9 +26,14 @@ const serviceSortOptions = [
   { label: 'Replicas', value: 'replicas' },
   { label: 'Updated', value: 'updatedAt' }
 ]
-const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('services', serviceRows, {
+const serviceFilterOptions = [
+  { key: 'status', label: 'Status', getValue: (s: any) => s.status },
+  { key: 'mode', label: 'Mode', getValue: (s: any) => s.mode }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions, filters, facets } = useListControls('services', serviceRows, {
   sortOptions: serviceSortOptions,
-  defaultSortBy: 'name'
+  defaultSortBy: 'updatedAt',
+  filterOptions: serviceFilterOptions
 })
 
 const { connected } = useDockerEvents((evt) => {
@@ -38,6 +43,54 @@ const { connected } = useDockerEvents((evt) => {
 useIntervalFn(() => {
   if (!connected.value && prefs.value.refreshInterval > 0) refresh()
 }, computed(() => prefs.value.refreshInterval > 0 ? prefs.value.refreshInterval * 1000 : 60_000), { immediate: false })
+
+// Live ring fills - separate from the heavier /api/services listing above,
+// polled on its own short interval so rings animate in near-real-time
+// regardless of Docker events (CPU/memory drift continuously on their own).
+const usageData = ref<{ services: any[] } | null>(null)
+const usageById = computed(() => new Map((usageData.value?.services || []).map((u: any) => [u.id, u])))
+async function refreshUsage() {
+  try {
+    usageData.value = await $fetch('/api/services/usage')
+  } catch {
+    // keep the last good sample on screen
+  }
+}
+onMounted(refreshUsage)
+useIntervalFn(refreshUsage, 5000, { immediate: false })
+
+function clampPercent(value?: number | null) {
+  if (value == null || !Number.isFinite(value)) return 0
+  return Math.max(0, Math.min(100, value))
+}
+function ringStyle(percent?: number | null) {
+  const safe = clampPercent(percent)
+  return {
+    background: `conic-gradient(var(--color-running) ${safe}%, color-mix(in srgb, var(--color-hull) 82%, transparent) 0)`
+  }
+}
+function memoryPercent(used?: number | null, limit?: number | null) {
+  if (!used || !limit) return null
+  return Math.min(100, (used / limit) * 100)
+}
+function replicaPercent(svc: any) {
+  const desired = Number(svc.desired || svc.replicas || 0)
+  const running = Number(svc.running || 0)
+  if (desired <= 0) return running > 0 ? 100 : 0
+  return (running / desired) * 100
+}
+function cpuRingPercent(svc: any) {
+  const usage = usageById.value.get(svc.id)
+  if (!usage?.available) return 0
+  const allocated = resourceNanoCpus(svc) / 1e9
+  if (allocated > 0) return (Number(usage.cpuPercent || 0) / (allocated * 100)) * 100
+  return Number(usage.cpuPercent || 0)
+}
+function memoryRingPercent(svc: any) {
+  const usage = usageById.value.get(svc.id)
+  if (!usage?.available) return 0
+  return memoryPercent(usage.memoryUsedBytes, usage.memoryLimitBytes || resourceMemory(svc)) ?? 0
+}
 
 const scaleTarget = ref<any>(null)
 const scaleValue = ref(1)
@@ -172,7 +225,9 @@ function memoryValue(svc: any) {
       v-model:search="search"
       v-model:sort-by="sortBy"
       v-model:sort-dir="sortDir"
+      v-model:filters="filters"
       :sort-options="sortOptions"
+      :facets="facets"
       placeholder="Search services"
     />
 
@@ -210,24 +265,24 @@ function memoryValue(svc: any) {
 
           <div class="mt-4 grid grid-cols-3 gap-3 text-center">
             <div>
-              <div class="mx-auto flex size-20 items-center justify-center rounded-full border-8 border-running/70 bg-running/10">
-                <div>
+              <div class="summary-ring mx-auto size-20" :style="ringStyle(replicaPercent(svc))">
+                <div class="summary-ring-inner">
                   <p class="font-mono text-sm font-semibold text-foam">{{ replicaLabel(svc) }}</p>
-                  <p class="text-[10px] leading-tight text-faint">replicas</p>
+                  <p class="text-[10px] leading-tight text-faint">replica</p>
                 </div>
               </div>
             </div>
             <div>
-              <div class="mx-auto flex size-20 items-center justify-center rounded-full border-8 border-beacon/60 bg-beacon/10">
-                <div>
+              <div class="summary-ring mx-auto size-20" :style="ringStyle(cpuRingPercent(svc))">
+                <div class="summary-ring-inner">
                   <p class="font-mono text-xs font-semibold text-foam">{{ cpuValue(svc) }}</p>
                   <p class="text-[10px] leading-tight text-faint">vCPU</p>
                 </div>
               </div>
             </div>
             <div>
-              <div class="mx-auto flex size-20 items-center justify-center rounded-full border-8 border-depth/60 bg-sky-500/10">
-                <div>
+              <div class="summary-ring mx-auto size-20" :style="ringStyle(memoryRingPercent(svc))">
+                <div class="summary-ring-inner">
                   <p class="font-mono text-xs font-semibold text-foam">{{ memoryValue(svc) }}</p>
                   <p class="text-[10px] leading-tight text-faint">RAM</p>
                 </div>
@@ -322,3 +377,26 @@ function memoryValue(svc: any) {
     </UModal>
   </div>
 </template>
+
+<style scoped>
+.summary-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.5rem;
+  transition: background 0.5s ease;
+}
+
+.summary-ring-inner {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  background: var(--color-surface);
+  padding: 0.25rem;
+}
+</style>

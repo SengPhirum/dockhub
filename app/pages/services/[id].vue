@@ -72,9 +72,14 @@ const taskSortOptions = [
   { label: 'Memory', value: 'metrics.memoryUsedBytes' },
   { label: 'Updated', value: 'timestamp' }
 ]
-const { items: filteredTasks, search, sortBy, sortDir, sortOptions } = useListControls(`service:${id}:tasks`, taskRows, {
+const taskFilterOptions = [
+  { key: 'state', label: 'Status', getValue: (t: any) => t.state }
+]
+const { items: filteredTasks, search, sortBy, sortDir, sortOptions, filters: taskFilters, facets: taskFacets } = useListControls(`service:${id}:tasks`, taskRows, {
   sortOptions: taskSortOptions,
-  defaultSortBy: 'slot'
+  defaultSortBy: 'slot',
+  filterOptions: taskFilterOptions,
+  defaultFilters: { state: ['running'] }
 })
 
 const statusEvents = ref<any[]>([])
@@ -440,7 +445,9 @@ function configRows(config: any) {
                 v-model:search="search"
                 v-model:sort-by="sortBy"
                 v-model:sort-dir="sortDir"
+                v-model:filters="taskFilters"
                 :sort-options="sortOptions"
+                :facets="taskFacets"
                 placeholder="Search service tasks"
               />
             </div>

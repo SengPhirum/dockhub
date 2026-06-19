@@ -10,10 +10,18 @@ const auditSortOptions = [
   { label: 'Action', value: 'action' },
   { label: 'Target', value: 'target' }
 ]
-const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('audit', data, {
+function actionVerb(action: string) {
+  return action?.split('.')[1] || action
+}
+const auditFilterOptions = [
+  { key: 'action', label: 'Action', getValue: (a: any) => actionVerb(a.action) },
+  { key: 'actor', label: 'Actor', getValue: (a: any) => a.actor }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions, filters, facets } = useListControls('audit', data, {
   sortOptions: auditSortOptions,
   defaultSortBy: 'ts',
-  defaultSortDir: 'desc'
+  defaultSortDir: 'desc',
+  filterOptions: auditFilterOptions
 })
 
 const icon: Record<string, string> = {
@@ -22,8 +30,7 @@ const icon: Record<string, string> = {
   scale: 'i-lucide-scaling', login: 'i-lucide-log-in'
 }
 function actionIcon(action: string) {
-  const verb = action.split('.')[1] || action
-  return icon[verb] || 'i-lucide-activity'
+  return icon[actionVerb(action)] || 'i-lucide-activity'
 }
 </script>
 
@@ -39,7 +46,9 @@ function actionIcon(action: string) {
       v-model:search="search"
       v-model:sort-by="sortBy"
       v-model:sort-dir="sortDir"
+      v-model:filters="filters"
       :sort-options="sortOptions"
+      :facets="facets"
       placeholder="Search audit log"
     />
 

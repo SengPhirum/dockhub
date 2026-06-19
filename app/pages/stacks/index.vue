@@ -22,9 +22,13 @@ const stackSortOptions = [
   { label: 'Networks', value: 'networks' },
   { label: 'Git tracked', value: 'inGit' }
 ]
-const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('stacks', data, {
+const stackFilterOptions = [
+  { key: 'inGit', label: 'Git tracked', getValue: (s: any) => s.inGit ? 'Yes' : 'No' }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions, filters, facets } = useListControls('stacks', data, {
   sortOptions: stackSortOptions,
-  defaultSortBy: 'name'
+  defaultSortBy: 'name',
+  filterOptions: stackFilterOptions
 })
 
 const open = ref(false)
@@ -84,7 +88,9 @@ async function deploy() {
       v-model:search="search"
       v-model:sort-by="sortBy"
       v-model:sort-dir="sortDir"
+      v-model:filters="filters"
       :sort-options="sortOptions"
+      :facets="facets"
       placeholder="Search stacks"
     />
 

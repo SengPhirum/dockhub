@@ -68,9 +68,15 @@ const nodeSortOptions = [
   { label: 'Disk usage', value: 'usage.disk.percent' },
   { label: 'Disk total', value: 'usage.disk.totalBytes' }
 ]
-const { items: filteredNodes, search, sortBy, sortDir, sortOptions } = useListControls('nodes', nodesForList, {
+const nodeFilterOptions = [
+  { key: 'state', label: 'State', getValue: (n: any) => n.state },
+  { key: 'role', label: 'Role', getValue: (n: any) => n.role },
+  { key: 'availability', label: 'Availability', getValue: (n: any) => n.availability }
+]
+const { items: filteredNodes, search, sortBy, sortDir, sortOptions, filters, facets } = useListControls('nodes', nodesForList, {
   sortOptions: nodeSortOptions,
-  defaultSortBy: 'hostname'
+  defaultSortBy: 'hostname',
+  filterOptions: nodeFilterOptions
 })
 
 const { connected } = useDockerEvents((evt) => {
@@ -324,7 +330,9 @@ function nodeBadges(n: any) {
       v-model:search="search"
       v-model:sort-by="sortBy"
       v-model:sort-dir="sortDir"
+      v-model:filters="filters"
       :sort-options="sortOptions"
+      :facets="facets"
       placeholder="Search nodes"
     />
 
@@ -350,7 +358,9 @@ function nodeBadges(n: any) {
               </span>
               <span class="min-w-0">
                 <span class="block truncate font-display text-base font-semibold text-foam group-hover:text-beacon">{{ n.hostname || '-' }}</span>
-                <span class="mt-0.5 block truncate font-mono text-xs text-faint">{{ n.addr || '-' }}</span>
+                <span class="mt-0.5 block truncate font-mono text-xs text-faint" :title="`${engineVersion(n)} on ${platformLabel(n)}`">
+                  {{ n.addr || '-' }} <span class="text-(--color-muted)">·</span> {{ engineVersion(n) }}
+                </span>
               </span>
             </NuxtLink>
             <UDropdownMenu :items="menu(n)" :content="{ align: 'end' }">
@@ -367,21 +377,6 @@ function nodeBadges(n: any) {
             >
               {{ badge.label }}
             </span>
-          </div>
-
-          <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <div
-              v-for="spec in nodeSpecs(n)"
-              :key="spec.key"
-              class="min-w-0 rounded-md bg-surface/60 px-2.5 py-2 ring-1 ring-hull-soft"
-              :title="spec.title"
-            >
-              <p class="flex min-w-0 items-center gap-1.5 text-[10px] font-semibold uppercase text-faint">
-                <UIcon :name="spec.icon" class="size-3 shrink-0" />
-                <span class="truncate">{{ spec.label }}</span>
-              </p>
-              <p class="mt-1 truncate font-mono text-xs text-foam">{{ spec.value }}</p>
-            </div>
           </div>
 
           <div class="mt-4 grid gap-2 sm:grid-cols-3">
@@ -404,21 +399,6 @@ function nodeBadges(n: any) {
               <p class="mt-1.5 truncate font-mono text-[11px] text-(--color-muted)">{{ metric.hint }}</p>
             </div>
           </div>
-
-          <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-hull-soft pt-3 text-xs">
-            <div>
-              <dt class="text-faint">Reachability</dt>
-              <dd class="mt-0.5 truncate font-mono text-(--color-muted)">{{ n.reachability || '-' }}</dd>
-            </div>
-            <div>
-              <dt class="text-faint">Node ID</dt>
-              <dd class="mt-0.5 truncate font-mono text-(--color-muted)">{{ short(n.id, 10) || '-' }}</dd>
-            </div>
-            <div class="col-span-2">
-              <dt class="text-faint">Labels</dt>
-              <dd class="mt-0.5 truncate font-mono text-(--color-muted)" :title="labelSummary(n)">{{ labelSummary(n) }}</dd>
-            </div>
-          </dl>
         </article>
       </TransitionGroup>
 

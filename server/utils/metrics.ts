@@ -33,9 +33,19 @@ export interface AgentReportForMetrics {
 let _metricsMigrated: Promise<void> | null = null
 
 /** Hypertable DDL + retention policies. Memoized like db.ts's migrate() so
- * it's safe to call from multiple Nitro plugins regardless of load order. */
+ * it's safe to call from multiple Nitro plugins regardless of load order,
+ * and from recordMetrics()/recordServiceStatusEvent() which call it
+ * defensively on every write (see those functions for why). On failure the
+ * memo is cleared rather than caching the rejection - otherwise one early
+ * caller racing a still-booting Postgres (Timescale's first-ever boot can
+ * take 10-30s) would permanently wedge metrics, even after Postgres recovers. */
 export async function migrateMetrics(db: Pool, retentionDays: number): Promise<void> {
-  if (!_metricsMigrated) _metricsMigrated = runMetricsMigrations(db, retentionDays)
+  if (!_metricsMigrated) {
+    _metricsMigrated = runMetricsMigrations(db, retentionDays).catch((err) => {
+      _metricsMigrated = null
+      throw err
+    })
+  }
   return _metricsMigrated
 }
 
@@ -163,8 +173,12 @@ async function runMetricsMigrations(db: Pool, retentionDays: number): Promise<vo
 export async function recordMetrics(report: AgentReportForMetrics): Promise<void> {
   try {
     const db = getDb()
-    // TEMP-DISABLED-FOR-RACE-REPRO
-    // await migrateMetrics(db, useRuntimeConfig().metrics.retentionDays)
+    // Defensive: Nitro doesn't await plugins before it starts accepting
+    // requests, so the dockhub-agent's first reports after a fresh deploy
+    // can otherwise land here before server/plugins/db.ts's migrateMetrics()
+    // call has finished creating the hypertables. Memoized, so this is a
+    // no-op once that call has completed.
+    await migrateMetrics(db, useRuntimeConfig().metrics.retentionDays)
     const now = new Date()
 
     await db.query(

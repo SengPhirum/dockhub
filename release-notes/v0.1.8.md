@@ -11,11 +11,12 @@ Date: 2026-06-19 UTC
 
 ## Source
 
-- Commit: `e728f76`
+- Commit: `14e562d`
 - Previous tag: none
 
 ## Changes
 
+- Enhance Stack and Service view (14e562d)
 - Enhance stack detail view (e728f76)
 - Update replase sqlite with timescaledb and fix some issue (527d233)
 - Enhance node display and added search text + sort function (e9244ab)
@@ -39,13 +40,30 @@ The working tree had uncommitted changes before this release script ran.
 
 ```text
  M RELEASE_NOTES.md
+ M app/components/ListControls.vue
+ M app/composables/useListControls.ts
+ M app/composables/usePreferences.ts
+ M app/pages/audit/index.vue
+ M app/pages/configs/index.vue
+ M app/pages/containers/index.vue
+ M app/pages/networks/index.vue
+ M app/pages/nodes/[id].vue
+ M app/pages/nodes/index.vue
+ M app/pages/secrets/index.vue
  M app/pages/services/[id].vue
  M app/pages/services/index.vue
- M package-lock.json
- M package.json
- M server/api/services/[id].get.ts
- M server/api/services/index.get.ts
-?? release-notes/v0.1.6.md
-?? release-notes/v0.1.7.md
-?? server/api/services/[id]/metrics.get.ts
+ M app/pages/stacks/index.vue
+ M app/pages/tasks/index.vue
+ M app/pages/users/index.vue
+ M app/pages/volumes/index.vue
+ M release-notes/v0.1.8.md
+ M server/api/nodes/[id].get.ts
+ M server/api/tasks/index.get.ts
+ M server/utils/db.ts
+ M server/utils/metrics.ts
+ M server/utils/store.ts
+?? app/pages/tasks/[id].vue
+?? server/api/services/usage.get.ts
+?? server/api/tasks/[id].get.ts
+?? server/api/tasks/[id]/
 ```

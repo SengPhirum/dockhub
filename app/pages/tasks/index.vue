@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { relative } = useFormat()
+const { relative, bytes, cpus } = useFormat()
 const { prefs } = usePreferences()
 
 const { data, status, error, refreshing, refresh } = useApiCache('tasks', () => $fetch<any[]>('/api/tasks'))
@@ -12,21 +12,70 @@ useIntervalFn(() => {
   if (!connected.value && prefs.value.refreshInterval > 0) refresh()
 }, computed(() => prefs.value.refreshInterval > 0 ? prefs.value.refreshInterval * 1000 : 60_000), { immediate: false })
 
-const onlyActive = ref(false)
-const visibleTasks = computed(() => (data.value ?? []).filter((t: any) => !onlyActive.value || t.state === 'running'))
+// Status priority used only when the user picks "State" as the sort field
+// below (not a separate UI control - it just redefines what "sort by State"
+// means): Running, Failed, Complete, then Shutdown, instead of plain
+// alphabetical order on the raw state string. Ranked high-to-low (not
+// 0..3) so it lines up with this list's default sort direction ('desc',
+// inherited from the page's default "Updated" sort meaning most-relevant
+// first) - selecting "State" right after load shows Running first without
+// also having to force-reset the direction toggle.
+const STATUS_PRIORITY: Record<string, number> = { running: 4, failed: 3, complete: 2, shutdown: 1 }
+function statusRank(state: string) {
+  return STATUS_PRIORITY[(state || '').toLowerCase()] ?? 0
+}
 const taskSortOptions = [
   { label: 'Updated', value: 'timestamp' },
   { label: 'Service', value: 'service' },
   { label: 'Node', value: 'node' },
-  { label: 'State', value: 'state' },
-  { label: 'Slot', value: 'slot' },
-  { label: 'Desired', value: 'desiredState' }
+  { label: 'State', value: 'state', getValue: (t: any) => statusRank(t.state) },
+  { label: 'CPU', value: 'metrics.cpuPercent' },
+  { label: 'Memory', value: 'metrics.memoryUsedBytes' },
+  { label: 'Slot', value: 'slot' }
 ]
-const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('tasks', visibleTasks, {
+const taskFilterOptions = [
+  { key: 'state', label: 'Status', getValue: (t: any) => t.state },
+  { key: 'node', label: 'Node', getValue: (t: any) => t.node },
+  { key: 'service', label: 'Service', getValue: (t: any) => t.service }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions, filters, facets } = useListControls('tasks', data, {
   sortOptions: taskSortOptions,
   defaultSortBy: 'timestamp',
-  defaultSortDir: 'desc'
+  defaultSortDir: 'desc',
+  filterOptions: taskFilterOptions
 })
+
+function memoryPercent(used?: number | null, limit?: number | null) {
+  if (!used || !limit) return null
+  return Math.min(100, (used / limit) * 100)
+}
+
+function percentLabel(value?: number | null) {
+  if (value == null || !Number.isFinite(value)) return '-'
+  return `${value.toFixed(value < 10 ? 1 : 0)}%`
+}
+
+function taskCpuPercent(t: any) {
+  return t.metrics ? percentLabel(t.metrics.cpuPercent) : '-'
+}
+
+function taskCpuDetail(t: any) {
+  return t.metrics ? cpus(Number(t.metrics.cpuPercent || 0) / 100) : ''
+}
+
+function taskMemoryPercent(t: any) {
+  if (!t.metrics) return '-'
+  const pct = memoryPercent(t.metrics.memoryUsedBytes, t.metrics.memoryLimitBytes)
+  return pct == null ? '-' : percentLabel(pct)
+}
+
+function taskMemoryDetail(t: any) {
+  return t.metrics ? bytes(t.metrics.memoryUsedBytes) : ''
+}
+
+function openTask(t: any) {
+  navigateTo(`/tasks/${t.id}`)
+}
 </script>
 
 <template>
@@ -37,38 +86,74 @@ const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControl
           <span class="dot" :class="connected ? 'dot-running' : 'dot-idle'" />
           {{ connected ? 'Live' : prefs.refreshInterval > 0 ? `${prefs.refreshInterval}s` : 'Manual' }}
         </div>
-        <UButton :color="onlyActive ? 'primary' : 'neutral'" :variant="onlyActive ? 'soft' : 'ghost'" icon="i-lucide-activity" label="Running" @click="onlyActive = !onlyActive" />
         <UButton icon="i-lucide-refresh-cw" color="neutral" variant="soft" :loading="refreshing" @click="refresh()" />
       </template>
     </PageHeader>
+
+    <div class="mb-3 flex items-center justify-between gap-3">
+      <p class="text-sm text-(--color-muted)">Total (<span class="font-semibold text-foam">{{ filtered.length }}</span>)</p>
+    </div>
 
     <ListControls
       v-model:search="search"
       v-model:sort-by="sortBy"
       v-model:sort-dir="sortDir"
+      v-model:filters="filters"
       :sort-options="sortOptions"
+      :facets="facets"
       placeholder="Search tasks"
     />
 
     <DataState :status="status" :error="error" :empty="!filtered.length" :refreshing="refreshing" empty-label="No tasks." empty-icon="i-lucide-list-checks">
-      <div class="space-y-2">
-        <div v-for="t in filtered" :key="t.id" class="panel-flush p-3 grid grid-cols-2 gap-2 sm:grid-cols-12 sm:items-center text-sm">
-          <div class="col-span-2 sm:col-span-3 min-w-0">
-            <p class="truncate font-medium text-foam">
-              {{ t.service || '—' }}<span v-if="t.slot != null" class="text-faint">.{{ t.slot }}</span>
-            </p>
-            <p class="truncate font-mono text-xs text-faint">{{ t.image || '—' }}</p>
-          </div>
-          <div class="sm:col-span-3 min-w-0 font-mono text-xs text-(--color-muted) truncate">
-            <UIcon name="i-lucide-server" class="size-3 inline mr-1" />{{ t.node || '—' }}
-          </div>
-          <div class="sm:col-span-2"><StatusBadge :state="t.state" /></div>
-          <div class="sm:col-span-2 text-xs text-faint">{{ relative(t.timestamp) }}</div>
-          <div class="col-span-2 sm:col-span-2 truncate text-xs" :class="t.state === 'failed' || t.state === 'rejected' ? 'status-down opacity-80' : 'text-faint'" :title="t.message">
-            {{ t.message || '—' }}
-          </div>
+      <section class="panel p-0 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-left text-sm">
+            <thead class="border-y border-hull text-xs uppercase tracking-wide text-faint">
+              <tr>
+                <th class="px-4 py-3 font-medium">Task</th>
+                <th class="px-4 py-3 font-medium">Node</th>
+                <th class="px-4 py-3 font-medium">CPU usage</th>
+                <th class="px-4 py-3 font-medium">Memory usage</th>
+                <th class="px-4 py-3 font-medium">Last update</th>
+                <th class="px-4 py-3 font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-hull">
+              <tr v-if="!filtered.length">
+                <td colspan="6" class="px-4 py-8 text-center text-(--color-muted)">No tasks.</td>
+              </tr>
+              <tr
+                v-for="t in filtered"
+                :key="t.id"
+                class="cursor-pointer align-top transition hover:bg-surface-2/60"
+                tabindex="0"
+                role="link"
+                :aria-label="`Open task ${t.service}`"
+                @click="openTask(t)"
+                @keydown.enter="openTask(t)"
+              >
+                <td class="px-4 py-3">
+                  <p class="truncate font-medium text-foam">
+                    {{ t.service || '—' }}<span v-if="t.slot != null" class="text-faint">.{{ t.slot }}</span>
+                  </p>
+                  <p class="mt-0.5 truncate font-mono text-xs text-faint">{{ t.image || '—' }}</p>
+                </td>
+                <td class="px-4 py-3 font-mono text-xs text-(--color-muted)">{{ t.node || '—' }}</td>
+                <td class="px-4 py-3">
+                  <p class="font-mono text-sm text-foam">{{ taskCpuPercent(t) }}</p>
+                  <p class="mt-0.5 font-mono text-xs text-faint">{{ taskCpuDetail(t) }}</p>
+                </td>
+                <td class="px-4 py-3">
+                  <p class="font-mono text-sm text-foam">{{ taskMemoryPercent(t) }}</p>
+                  <p class="mt-0.5 font-mono text-xs text-faint">{{ taskMemoryDetail(t) }}</p>
+                </td>
+                <td class="px-4 py-3 text-xs text-faint">{{ relative(t.timestamp) }}</td>
+                <td class="px-4 py-3"><StatusBadge :state="t.state" /></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </div>
+      </section>
     </DataState>
   </div>
 </template>

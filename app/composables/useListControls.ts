@@ -6,10 +6,36 @@ export interface ListSortOption<T = any> {
   getValue?: (item: T) => unknown
 }
 
+export interface ListFilterOption<T = any> {
+  key: string
+  label: string
+  /** Returns the item's value(s) for this dimension. Distinct values found
+   * across the (search-filtered) dataset become the selectable options. */
+  getValue: (item: T) => string | number | null | undefined | Array<string | number>
+}
+
+export interface ListFilterFacetOption {
+  label: string
+  value: string
+  count: number
+}
+
+export interface ListFilterFacet {
+  key: string
+  label: string
+  options: ListFilterFacetOption[]
+}
+
 interface UseListControlsOptions<T> {
   sortOptions: Array<ListSortOption<T>>
   defaultSortBy?: string
   defaultSortDir?: SortDirection
+  filterOptions?: Array<ListFilterOption<T>>
+  /** Initial filter selection when the user has no saved preference yet for
+   * this list key - e.g. a Tasks table embedded in a Node/Service detail
+   * page can default to {state: ['running']} while the standalone Tasks
+   * list page shows everything. */
+  defaultFilters?: Record<string, string[]>
 }
 
 function resolveListSource<T>(source: any): T[] {
@@ -47,6 +73,12 @@ function compareValues(a: unknown, b: unknown): number {
   return String(aValue).localeCompare(String(bValue), undefined, { numeric: true, sensitivity: 'base' })
 }
 
+function normalizeFilterValues(value: ReturnType<ListFilterOption['getValue']>): string[] {
+  if (value == null) return []
+  const arr = Array.isArray(value) ? value : [value]
+  return arr.map((v) => String(v))
+}
+
 export function useListControls<T = any>(
   key: string,
   source: any,
@@ -54,6 +86,7 @@ export function useListControls<T = any>(
 ) {
   const { prefs, updatePreferences } = usePreferences()
   const sortOptions = options.sortOptions
+  const filterOptions = options.filterOptions || []
   const fallbackSort = options.defaultSortBy || sortOptions[0]?.value || ''
   const fallbackDir = options.defaultSortDir || 'asc'
   const preferred = computed(() => prefs.value.lists?.[key])
@@ -61,37 +94,75 @@ export function useListControls<T = any>(
   const search = ref('')
   const sortBy = ref(preferred.value?.sortBy || fallbackSort)
   const sortDir = ref<SortDirection>(preferred.value?.sortDir || fallbackDir)
+  const filters = ref<Record<string, string[]>>({ ...(preferred.value?.filters || options.defaultFilters || {}) })
   const restoringPreference = ref(false)
   let persistTimer: ReturnType<typeof setTimeout> | null = null
 
   watch(preferred, (next) => {
-    if (!next) return
-    if (!sortOptions.some((option) => option.value === next.sortBy)) return
     restoringPreference.value = true
-    sortBy.value = next.sortBy
-    sortDir.value = next.sortDir === 'desc' ? 'desc' : 'asc'
+    if (next && sortOptions.some((option) => option.value === next.sortBy)) {
+      sortBy.value = next.sortBy
+      sortDir.value = next.sortDir === 'desc' ? 'desc' : 'asc'
+    }
+    filters.value = { ...(next?.filters || options.defaultFilters || {}) }
     nextTick(() => { restoringPreference.value = false })
   }, { immediate: true })
 
-  watch([sortBy, sortDir], () => {
+  watch([sortBy, sortDir, filters], () => {
     if (restoringPreference.value) return
     if (persistTimer) clearTimeout(persistTimer)
     persistTimer = setTimeout(() => {
       updatePreferences({
         lists: {
           ...(prefs.value.lists || {}),
-          [key]: { sortBy: sortBy.value, sortDir: sortDir.value }
+          [key]: { sortBy: sortBy.value, sortDir: sortDir.value, filters: filters.value }
         }
       }).catch(() => null)
     }, 350)
-  })
+  }, { deep: true })
 
-  const items = computed<T[]>(() => {
+  const searched = computed<T[]>(() => {
     const query = search.value.trim().toLowerCase()
-    const currentSort = sortOptions.find((option) => option.value === sortBy.value) || sortOptions[0]
-    const filtered = resolveListSource<T>(source).filter((item) => {
+    return resolveListSource<T>(source).filter((item) => {
       if (!query) return true
       return searchableText(item).toLowerCase().includes(query)
+    })
+  })
+
+  // Facets are derived from the searched (but not yet filtered) dataset, so
+  // switching one filter doesn't make other filters' options disappear.
+  const facets = computed<ListFilterFacet[]>(() => {
+    return filterOptions.map((def) => {
+      const counts = new Map<string, number>()
+      for (const item of searched.value) {
+        for (const v of normalizeFilterValues(def.getValue(item))) {
+          counts.set(v, (counts.get(v) || 0) + 1)
+        }
+      }
+      const optionList = Array.from(counts.entries())
+        .map(([value, count]) => ({ label: value, value, count }))
+        .sort((a, b) => a.label.localeCompare(b.label))
+      return { key: def.key, label: def.label, options: optionList }
+    })
+  })
+
+  const activeFilterCount = computed(() => Object.values(filters.value).filter((v) => v?.length).length)
+
+  function clearFilters() {
+    filters.value = {}
+  }
+
+  const items = computed<T[]>(() => {
+    const currentSort = sortOptions.find((option) => option.value === sortBy.value) || sortOptions[0]
+
+    const filtered = searched.value.filter((item) => {
+      for (const def of filterOptions) {
+        const selected = filters.value[def.key]
+        if (!selected?.length) continue
+        const values = normalizeFilterValues(def.getValue(item))
+        if (!values.some((v) => selected.includes(v))) return false
+      }
+      return true
     })
 
     if (!currentSort) return filtered
@@ -111,5 +182,5 @@ export function useListControls<T = any>(
     sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
   }
 
-  return { items, search, sortBy, sortDir, sortOptions, toggleSortDir }
+  return { items, search, sortBy, sortDir, sortOptions, toggleSortDir, filters, facets, activeFilterCount, clearFilters }
 }

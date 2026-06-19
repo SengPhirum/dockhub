@@ -2,7 +2,7 @@ export interface UserPreferences {
   theme: 'system' | 'dark' | 'light'
   refreshInterval: number
   density: 'default' | 'compact' | 'comfortable'
-  lists: Record<string, { sortBy: string; sortDir: 'asc' | 'desc' }>
+  lists: Record<string, { sortBy: string; sortDir: 'asc' | 'desc'; filters?: Record<string, string[]> }>
 }
 
 const DEFAULT_PREFS: UserPreferences = { theme: 'system', refreshInterval: 0, density: 'default', lists: {} }

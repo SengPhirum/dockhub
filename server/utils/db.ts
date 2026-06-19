@@ -47,10 +47,18 @@ export async function waitForDb(maxAttempts = 30, delayMs = 2000): Promise<void>
 }
 
 /** Runs all app-data DDL migrations. Idempotent (IF NOT EXISTS everywhere)
- * and memoized so repeated calls (from multiple Nitro plugins) are cheap and
- * don't depend on plugin execution order. */
+ * and memoized so repeated calls (from multiple Nitro plugins, and
+ * defensively from store.ts's ensureAdmin()) are cheap and don't depend on
+ * plugin execution order. On failure the memo is cleared rather than caching
+ * the rejection - otherwise one early caller racing a still-booting Postgres
+ * would permanently wedge migrations, even after Postgres recovers. */
 export async function migrate(): Promise<void> {
-  if (!_migrated) _migrated = runMigrations()
+  if (!_migrated) {
+    _migrated = runMigrations().catch((err) => {
+      _migrated = null
+      throw err
+    })
+  }
   return _migrated
 }
 
