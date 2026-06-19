@@ -11,6 +11,18 @@ const node = computed(() => data.value?.node)
 const desc = computed(() => node.value?.Description)
 const hostname = computed(() => desc.value?.Hostname)
 const labels = computed<Record<string, string>>(() => node.value?.Spec?.Labels || {})
+const taskRows = computed(() => data.value?.tasks || [])
+const taskSortOptions = [
+  { label: 'Image', value: 'Spec.ContainerSpec.Image' },
+  { label: 'State', value: 'Status.State' },
+  { label: 'Updated', value: 'Status.Timestamp' },
+  { label: 'Task ID', value: 'ID' }
+]
+const { items: filteredTasks, search, sortBy, sortDir, sortOptions } = useListControls(`node:${id}:tasks`, taskRows, {
+  sortOptions: taskSortOptions,
+  defaultSortBy: 'Status.Timestamp',
+  defaultSortDir: 'desc'
+})
 
 // label editor
 const labelsOpen = ref(false)
@@ -82,9 +94,16 @@ async function remove() {
       </div>
 
       <h3 class="font-display text-sm font-semibold text-foam mb-3">Tasks on this node</h3>
-      <div v-if="!data?.tasks?.length" class="panel p-8 text-center text-sm text-(--color-muted)">No tasks scheduled here.</div>
+      <ListControls
+        v-model:search="search"
+        v-model:sort-by="sortBy"
+        v-model:sort-dir="sortDir"
+        :sort-options="sortOptions"
+        placeholder="Search node tasks"
+      />
+      <div v-if="!filteredTasks.length" class="panel p-8 text-center text-sm text-(--color-muted)">No tasks scheduled here.</div>
       <div v-else class="space-y-2">
-        <div v-for="t in data.tasks" :key="t.ID" class="panel-flush p-3 flex items-center justify-between gap-3 text-sm">
+        <div v-for="t in filteredTasks" :key="t.ID" class="panel-flush p-3 flex items-center justify-between gap-3 text-sm">
           <div class="min-w-0">
             <p class="truncate font-mono text-xs text-(--color-muted)">{{ (t.Spec?.ContainerSpec?.Image || '').split('@')[0] }}</p>
           </div>

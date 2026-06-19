@@ -11,7 +11,14 @@ type UsageResult = {
   error?: string
   cpu: { cores: number; percent: number }
   memory: { usedBytes: number; totalBytes: number; percent: number }
-  disk: { usedBytes: number; totalBytes?: number; percent?: number }
+  disk: {
+    usedBytes: number
+    totalBytes?: number
+    availableBytes?: number
+    percent?: number
+    dockerUsedBytes?: number
+    path?: string
+  }
   containers: { running: number; sampled: number }
 }
 

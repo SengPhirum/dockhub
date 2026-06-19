@@ -5,6 +5,19 @@ const toast = useToast()
 
 const { data, status, error, refreshing, refresh } = useApiCache('users', () => $fetch<any[]>('/api/users'))
 onMounted(refresh)
+const userSortOptions = [
+  { label: 'Display name', value: 'displayName' },
+  { label: 'Username', value: 'username' },
+  { label: 'Email', value: 'email' },
+  { label: 'Role', value: 'role' },
+  { label: 'Source', value: 'source' },
+  { label: 'Created', value: 'createdAt' },
+  { label: 'Last login', value: 'lastLogin' }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('users', data, {
+  sortOptions: userSortOptions,
+  defaultSortBy: 'displayName'
+})
 
 const ROLES = ['viewer', 'operator', 'admin'] as const
 type Role = typeof ROLES[number]
@@ -106,9 +119,17 @@ async function confirmDelete() {
       </div>
     </div>
 
-    <DataState :status="status" :error="error" :empty="!data?.length" :refreshing="refreshing" empty-label="No users yet." empty-icon="i-lucide-users">
+    <ListControls
+      v-model:search="search"
+      v-model:sort-by="sortBy"
+      v-model:sort-dir="sortDir"
+      :sort-options="sortOptions"
+      placeholder="Search users"
+    />
+
+    <DataState :status="status" :error="error" :empty="!filtered.length" :refreshing="refreshing" empty-label="No users yet." empty-icon="i-lucide-users">
       <TransitionGroup name="list" tag="div" class="space-y-2">
-        <div v-for="u in data" :key="u.id"
+        <div v-for="u in filtered" :key="u.id"
           class="panel-flush p-3.5 grid grid-cols-2 gap-3 sm:grid-cols-12 sm:items-center transition-colors hover:border-hull">
           <div class="col-span-2 sm:col-span-4 min-w-0">
             <div class="flex items-center gap-2.5">

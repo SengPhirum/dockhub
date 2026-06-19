@@ -12,14 +12,20 @@ useIntervalFn(() => {
   if (!connected.value && prefs.value.refreshInterval > 0) refresh()
 }, computed(() => prefs.value.refreshInterval > 0 ? prefs.value.refreshInterval * 1000 : 60_000), { immediate: false })
 
-const search = ref('')
 const onlyActive = ref(false)
-const filtered = computed(() => {
-  const q = search.value.toLowerCase()
-  return (data.value ?? []).filter((t: any) => {
-    if (onlyActive.value && t.state !== 'running') return false
-    return !q || t.service?.toLowerCase().includes(q) || t.node?.toLowerCase().includes(q) || t.image?.toLowerCase().includes(q)
-  })
+const visibleTasks = computed(() => (data.value ?? []).filter((t: any) => !onlyActive.value || t.state === 'running'))
+const taskSortOptions = [
+  { label: 'Updated', value: 'timestamp' },
+  { label: 'Service', value: 'service' },
+  { label: 'Node', value: 'node' },
+  { label: 'State', value: 'state' },
+  { label: 'Slot', value: 'slot' },
+  { label: 'Desired', value: 'desiredState' }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('tasks', visibleTasks, {
+  sortOptions: taskSortOptions,
+  defaultSortBy: 'timestamp',
+  defaultSortDir: 'desc'
 })
 </script>
 
@@ -31,11 +37,18 @@ const filtered = computed(() => {
           <span class="dot" :class="connected ? 'dot-running' : 'dot-idle'" />
           {{ connected ? 'Live' : prefs.refreshInterval > 0 ? `${prefs.refreshInterval}s` : 'Manual' }}
         </div>
-        <UInput v-model="search" icon="i-lucide-search" placeholder="Filter tasks" class="w-40 sm:w-52" />
         <UButton :color="onlyActive ? 'primary' : 'neutral'" :variant="onlyActive ? 'soft' : 'ghost'" icon="i-lucide-activity" label="Running" @click="onlyActive = !onlyActive" />
         <UButton icon="i-lucide-refresh-cw" color="neutral" variant="soft" :loading="refreshing" @click="refresh()" />
       </template>
     </PageHeader>
+
+    <ListControls
+      v-model:search="search"
+      v-model:sort-by="sortBy"
+      v-model:sort-dir="sortDir"
+      :sort-options="sortOptions"
+      placeholder="Search tasks"
+    />
 
     <DataState :status="status" :error="error" :empty="!filtered.length" :refreshing="refreshing" empty-label="No tasks." empty-icon="i-lucide-list-checks">
       <div class="space-y-2">

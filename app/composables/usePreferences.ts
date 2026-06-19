@@ -2,9 +2,10 @@ export interface UserPreferences {
   theme: 'system' | 'dark' | 'light'
   refreshInterval: number
   density: 'default' | 'compact' | 'comfortable'
+  lists: Record<string, { sortBy: string; sortDir: 'asc' | 'desc' }>
 }
 
-const DEFAULT_PREFS: UserPreferences = { theme: 'system', refreshInterval: 0, density: 'default' }
+const DEFAULT_PREFS: UserPreferences = { theme: 'system', refreshInterval: 0, density: 'default', lists: {} }
 
 export function usePreferences() {
   const prefs = useState<UserPreferences>('user_prefs', () => ({ ...DEFAULT_PREFS }))
@@ -13,7 +14,7 @@ export function usePreferences() {
   async function fetchPreferences() {
     try {
       const data = await $fetch<UserPreferences>('/api/user/preferences')
-      prefs.value = data
+      prefs.value = { ...DEFAULT_PREFS, ...data, lists: data.lists || {} }
       // Sync theme to Nuxt colorMode
       colorMode.preference = data.theme
     } catch {
@@ -23,7 +24,7 @@ export function usePreferences() {
 
   async function updatePreferences(patch: Partial<UserPreferences>) {
     const data = await $fetch<UserPreferences>('/api/user/preferences', { method: 'PATCH', body: patch })
-    prefs.value = data
+    prefs.value = { ...DEFAULT_PREFS, ...data, lists: data.lists || {} }
     if (patch.theme !== undefined) colorMode.preference = patch.theme
     return data
   }

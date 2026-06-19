@@ -122,6 +122,20 @@ const envVars = [
   { k: 'NUXT_DATA_DIR', d: 'Directory for the SQLite database (default: ./.data)' },
   { k: 'NUXT_PUBLIC_APP_NAME', d: 'Displayed as the app name in the header' }
 ]
+const envSortOptions = [
+  { label: 'Variable', value: 'k' },
+  { label: 'Description', value: 'd' }
+]
+const {
+  items: filteredEnvVars,
+  search: envSearch,
+  sortBy: envSortBy,
+  sortDir: envSortDir,
+  sortOptions: envSortOptionsState
+} = useListControls('settings:env', () => envVars, {
+  sortOptions: envSortOptions,
+  defaultSortBy: 'k'
+})
 
 const ldapForm = reactive({
   enabled: false,
@@ -518,9 +532,16 @@ async function resetProvider(provider: 'ldap' | 'oidc') {
           <p class="text-xs text-(--color-muted) mb-4">
             Environment variables provide defaults. Saved authentication settings are persisted in the SQLite app settings table and override those defaults until reset.
           </p>
+          <ListControls
+            v-model:search="envSearch"
+            v-model:sort-by="envSortBy"
+            v-model:sort-dir="envSortDir"
+            :sort-options="envSortOptionsState"
+            placeholder="Search environment variables"
+          />
           <div class="space-y-0">
             <div
-              v-for="e in envVars"
+              v-for="e in filteredEnvVars"
               :key="e.k"
               class="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 py-2 border-b border-hull/40 last:border-0"
             >

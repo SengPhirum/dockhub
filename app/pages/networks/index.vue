@@ -14,6 +14,19 @@ useIntervalFn(() => {
   if (!connected.value && prefs.value.refreshInterval > 0) refresh()
 }, computed(() => prefs.value.refreshInterval > 0 ? prefs.value.refreshInterval * 1000 : 60_000), { immediate: false })
 
+const networkSortOptions = [
+  { label: 'Name', value: 'name' },
+  { label: 'Driver', value: 'driver' },
+  { label: 'Scope', value: 'scope' },
+  { label: 'Stack', value: 'stack' },
+  { label: 'Subnet', value: 'subnet' },
+  { label: 'Created', value: 'created' }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('networks', data, {
+  sortOptions: networkSortOptions,
+  defaultSortBy: 'name'
+})
+
 const open = ref(false)
 const form = reactive({ name: '', driver: 'overlay', subnet: '', attachable: true, internal: false })
 function openCreate() { Object.assign(form, { name: '', driver: 'overlay', subnet: '', attachable: true, internal: false }); open.value = true }
@@ -60,9 +73,17 @@ const SYSTEM = ['bridge', 'host', 'none', 'docker_gwbridge', 'ingress']
       </template>
     </PageHeader>
 
-    <DataState :status="status" :error="error" :empty="!data?.length" :refreshing="refreshing" empty-label="No networks." empty-icon="i-lucide-network">
+    <ListControls
+      v-model:search="search"
+      v-model:sort-by="sortBy"
+      v-model:sort-dir="sortDir"
+      :sort-options="sortOptions"
+      placeholder="Search networks"
+    />
+
+    <DataState :status="status" :error="error" :empty="!filtered.length" :refreshing="refreshing" empty-label="No networks." empty-icon="i-lucide-network">
       <TransitionGroup name="list" tag="div" class="space-y-2">
-        <div v-for="n in data" :key="n.id" class="panel-flush p-3.5 grid grid-cols-2 gap-3 sm:grid-cols-12 sm:items-center">
+        <div v-for="n in filtered" :key="n.id" class="panel-flush p-3.5 grid grid-cols-2 gap-3 sm:grid-cols-12 sm:items-center">
           <div class="col-span-2 sm:col-span-4 min-w-0">
             <div class="flex items-center gap-2">
               <UIcon name="i-lucide-network" class="size-4 text-(--color-muted)" />

@@ -77,6 +77,11 @@ function runMigrations(db: Database.Database) {
 
     CREATE UNIQUE INDEX IF NOT EXISTS idx_api_tokens_hash ON api_tokens(token_hash);
   `)
+
+  const preferenceColumns = db.prepare('PRAGMA table_info(user_preferences)').all() as Array<{ name: string }>
+  if (!preferenceColumns.some((column) => column.name === 'data')) {
+    db.prepare('ALTER TABLE user_preferences ADD COLUMN data TEXT NOT NULL DEFAULT "{}"').run()
+  }
 }
 
 function seedFromJson(db: Database.Database, dir: string) {

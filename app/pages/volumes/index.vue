@@ -3,6 +3,17 @@ const { can } = useAuth()
 const { relative } = useFormat()
 const toast = useToast()
 const { data, status, error, refresh } = await useFetch('/api/volumes', { lazy: true })
+const volumeSortOptions = [
+  { label: 'Name', value: 'name' },
+  { label: 'Driver', value: 'driver' },
+  { label: 'Scope', value: 'scope' },
+  { label: 'Created', value: 'created' },
+  { label: 'Mountpoint', value: 'mountpoint' }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('volumes', data, {
+  sortOptions: volumeSortOptions,
+  defaultSortBy: 'name'
+})
 
 const open = ref(false)
 const form = reactive({ name: '', driver: 'local' })
@@ -35,9 +46,17 @@ async function remove(v: any) {
       </template>
     </PageHeader>
 
-    <DataState :status="status" :error="error" :empty="!data?.length" empty-label="No volumes." empty-icon="i-lucide-database">
+    <ListControls
+      v-model:search="search"
+      v-model:sort-by="sortBy"
+      v-model:sort-dir="sortDir"
+      :sort-options="sortOptions"
+      placeholder="Search volumes"
+    />
+
+    <DataState :status="status" :error="error" :empty="!filtered.length" empty-label="No volumes." empty-icon="i-lucide-database">
       <div class="space-y-2">
-        <div v-for="v in data" :key="v.name" class="panel-flush p-3.5 grid grid-cols-2 gap-3 sm:grid-cols-12 sm:items-center">
+        <div v-for="v in filtered" :key="v.name" class="panel-flush p-3.5 grid grid-cols-2 gap-3 sm:grid-cols-12 sm:items-center">
           <div class="col-span-2 sm:col-span-5 min-w-0">
             <div class="flex items-center gap-2">
               <UIcon name="i-lucide-database" class="size-4 text-(--color-muted)" />

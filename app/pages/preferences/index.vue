@@ -7,6 +7,23 @@ const toast = useToast()
 interface ApiToken { id: string; name: string; prefix: string; createdAt: string; lastUsed?: string }
 
 const { data: tokens, refresh: refreshTokens } = useFetch<ApiToken[]>('/api/user/tokens', { default: () => [] })
+const tokenSortOptions = [
+  { label: 'Name', value: 'name' },
+  { label: 'Created', value: 'createdAt' },
+  { label: 'Last used', value: 'lastUsed' },
+  { label: 'Prefix', value: 'prefix' }
+]
+const {
+  items: filteredTokens,
+  search: tokenSearch,
+  sortBy: tokenSortBy,
+  sortDir: tokenSortDir,
+  sortOptions: tokenSortOptionsState
+} = useListControls('preferences:tokens', tokens, {
+  sortOptions: tokenSortOptions,
+  defaultSortBy: 'createdAt',
+  defaultSortDir: 'desc'
+})
 const newTokenName = ref('')
 const creatingToken = ref(false)
 const newlyCreated = ref<{ token: string; name: string } | null>(null)
@@ -221,8 +238,16 @@ await fetchPreferences()
 
           <!-- Token list -->
           <div v-if="tokens?.length" class="border-t border-hull pt-5 space-y-2">
+            <ListControls
+              v-model:search="tokenSearch"
+              v-model:sort-by="tokenSortBy"
+              v-model:sort-dir="tokenSortDir"
+              :sort-options="tokenSortOptionsState"
+              placeholder="Search tokens"
+            />
+            <p v-if="!filteredTokens.length" class="text-sm text-faint">No matching tokens.</p>
             <div
-              v-for="tok in tokens" :key="tok.id"
+              v-for="tok in filteredTokens" :key="tok.id"
               class="flex items-center gap-3 rounded-lg bg-surface-2 px-3 py-2.5"
             >
               <UIcon name="i-lucide-key-round" class="size-4 shrink-0 text-faint" />

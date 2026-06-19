@@ -7,12 +7,18 @@ const toast = useToast()
 const { data, status, error, refreshing, refresh } = useApiCache('services', () => $fetch<any[]>('/api/services'))
 onMounted(refresh)
 
-const search = ref('')
-const filtered = computed(() => {
-  const q = search.value.toLowerCase()
-  return (data.value ?? []).filter((s) =>
-    !q || s.name?.toLowerCase().includes(q) || s.image?.toLowerCase().includes(q) || s.stack?.toLowerCase().includes(q)
-  )
+const serviceSortOptions = [
+  { label: 'Name', value: 'name' },
+  { label: 'Stack', value: 'stack' },
+  { label: 'Image', value: 'image' },
+  { label: 'Mode', value: 'mode' },
+  { label: 'Running', value: 'running' },
+  { label: 'Replicas', value: 'replicas' },
+  { label: 'Updated', value: 'updatedAt' }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('services', data, {
+  sortOptions: serviceSortOptions,
+  defaultSortBy: 'name'
 })
 
 // ── live updates ──────────────────────────────────────────────────────────────
@@ -80,10 +86,17 @@ function menu(svc: any) {
           <span class="dot" :class="connected ? 'dot-running' : 'dot-idle'" />
           {{ connected ? 'Live' : prefs.refreshInterval > 0 ? `${prefs.refreshInterval}s` : 'Manual' }}
         </div>
-        <UInput v-model="search" icon="i-lucide-search" placeholder="Filter services" class="w-44 sm:w-56" />
         <UButton icon="i-lucide-refresh-cw" color="neutral" variant="soft" :loading="refreshing" @click="refresh()" />
       </template>
     </PageHeader>
+
+    <ListControls
+      v-model:search="search"
+      v-model:sort-by="sortBy"
+      v-model:sort-dir="sortDir"
+      :sort-options="sortOptions"
+      placeholder="Search services"
+    />
 
     <DataState :status="status" :error="error" :empty="filtered.length === 0" :refreshing="refreshing" empty-label="No services running." empty-icon="i-lucide-boxes">
       <TransitionGroup name="list" tag="div" class="space-y-2">

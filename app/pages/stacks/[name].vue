@@ -17,6 +17,41 @@ useIntervalFn(() => {
 }, computed(() => prefs.value.refreshInterval > 0 ? prefs.value.refreshInterval * 1000 : 60_000), { immediate: false })
 
 const tab = ref<'services' | 'compose' | 'history'>('services')
+const serviceRows = computed(() => data.value?.services || [])
+const historyRows = computed(() => data.value?.history || [])
+const serviceSortOptions = [
+  { label: 'Name', value: 'name' },
+  { label: 'Image', value: 'image' },
+  { label: 'Running', value: 'running' },
+  { label: 'Replicas', value: 'replicas' }
+]
+const {
+  items: filteredServices,
+  search: serviceSearch,
+  sortBy: serviceSortBy,
+  sortDir: serviceSortDir,
+  sortOptions: serviceSortOptionsState
+} = useListControls(`stack:${name}:services`, serviceRows, {
+  sortOptions: serviceSortOptions,
+  defaultSortBy: 'name'
+})
+const historySortOptions = [
+  { label: 'Date', value: 'created_at' },
+  { label: 'Author', value: 'author_name' },
+  { label: 'Title', value: 'title' },
+  { label: 'Commit', value: 'id' }
+]
+const {
+  items: filteredHistory,
+  search: historySearch,
+  sortBy: historySortBy,
+  sortDir: historySortDir,
+  sortOptions: historySortOptionsState
+} = useListControls(`stack:${name}:history`, historyRows, {
+  sortOptions: historySortOptions,
+  defaultSortBy: 'created_at',
+  defaultSortDir: 'desc'
+})
 
 const draft = ref('')
 const editing = ref(false)
@@ -100,10 +135,17 @@ const tabs = computed(() => {
 
       <!-- services -->
       <div v-if="tab === 'services'" class="space-y-2">
-        <div v-if="!data?.services?.length" class="panel p-10 text-center text-sm text-(--color-muted)">
+        <ListControls
+          v-model:search="serviceSearch"
+          v-model:sort-by="serviceSortBy"
+          v-model:sort-dir="serviceSortDir"
+          :sort-options="serviceSortOptionsState"
+          placeholder="Search stack services"
+        />
+        <div v-if="!filteredServices.length" class="panel p-10 text-center text-sm text-(--color-muted)">
           No running services for this stack.
         </div>
-        <NuxtLink v-for="s in data?.services" :key="s.id" :to="`/services/${s.id}`"
+        <NuxtLink v-for="s in filteredServices" :key="s.id" :to="`/services/${s.id}`"
           class="panel-flush p-3.5 flex items-center justify-between gap-3 hover:ring-1 hover:ring-beacon/30 transition group">
           <div class="flex items-center gap-2 min-w-0">
             <span class="dot" :class="s.running >= (s.replicas ?? 1) && (s.running > 0 || s.replicas === 0) ? 'dot-running' : s.running > 0 ? 'dot-pending' : 'dot-down'" />
@@ -140,10 +182,17 @@ const tabs = computed(() => {
 
       <!-- history -->
       <div v-else-if="tab === 'history'" class="space-y-0">
-        <div v-for="(c, i) in data?.history" :key="c.id" class="relative flex gap-3 pl-1">
+        <ListControls
+          v-model:search="historySearch"
+          v-model:sort-by="historySortBy"
+          v-model:sort-dir="historySortDir"
+          :sort-options="historySortOptionsState"
+          placeholder="Search history"
+        />
+        <div v-for="(c, i) in filteredHistory" :key="c.id" class="relative flex gap-3 pl-1">
           <div class="flex flex-col items-center">
             <span class="mt-1.5 size-2.5 rounded-full bg-beacon ring-4 ring-beacon/10" />
-            <span v-if="i < (data?.history?.length || 0) - 1" class="w-px flex-1 bg-hull" />
+            <span v-if="i < filteredHistory.length - 1" class="w-px flex-1 bg-hull" />
           </div>
           <div class="panel-flush flex-1 mb-3 p-3.5">
             <div class="flex flex-wrap items-start justify-between gap-2">

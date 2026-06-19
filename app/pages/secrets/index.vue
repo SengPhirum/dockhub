@@ -3,6 +3,16 @@ const { can } = useAuth()
 const { relative, short } = useFormat()
 const toast = useToast()
 const { data, status, error, refresh } = await useFetch('/api/secrets', { lazy: true })
+const secretSortOptions = [
+  { label: 'Name', value: 'name' },
+  { label: 'Stack', value: 'stack' },
+  { label: 'Created', value: 'created' },
+  { label: 'Updated', value: 'updated' }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('secrets', data, {
+  sortOptions: secretSortOptions,
+  defaultSortBy: 'name'
+})
 
 const open = ref(false)
 const form = reactive({ name: '', data: '' })
@@ -40,9 +50,17 @@ async function remove(s: any) {
       Secret values are write-only — Docker never exposes them after creation.
     </div>
 
-    <DataState :status="status" :error="error" :empty="!data?.length" empty-label="No secrets." empty-icon="i-lucide-key-round">
+    <ListControls
+      v-model:search="search"
+      v-model:sort-by="sortBy"
+      v-model:sort-dir="sortDir"
+      :sort-options="sortOptions"
+      placeholder="Search secrets"
+    />
+
+    <DataState :status="status" :error="error" :empty="!filtered.length" empty-label="No secrets." empty-icon="i-lucide-key-round">
       <div class="space-y-2">
-        <div v-for="s in data" :key="s.id" class="panel-flush p-3.5 grid grid-cols-2 gap-3 sm:grid-cols-12 sm:items-center">
+        <div v-for="s in filtered" :key="s.id" class="panel-flush p-3.5 grid grid-cols-2 gap-3 sm:grid-cols-12 sm:items-center">
           <div class="col-span-2 sm:col-span-6 min-w-0">
             <div class="flex items-center gap-2">
               <UIcon name="i-lucide-key-round" class="size-4 text-(--color-muted)" />

@@ -16,6 +16,18 @@ const ports = computed(() => data.value?.service?.Endpoint?.Ports || [])
 const envs = computed(() => spec.value?.TaskTemplate?.ContainerSpec?.Env || [])
 const networks = computed(() => spec.value?.TaskTemplate?.Networks || [])
 const stack = computed(() => spec.value?.Labels?.['com.docker.stack.namespace'])
+const taskRows = computed(() => data.value?.tasks || [])
+const taskSortOptions = [
+  { label: 'Slot', value: 'Slot' },
+  { label: 'State', value: 'Status.State' },
+  { label: 'Node', value: 'NodeID' },
+  { label: 'Updated', value: 'Status.Timestamp' },
+  { label: 'Message', value: 'Status.Message' }
+]
+const { items: filteredTasks, search, sortBy, sortDir, sortOptions } = useListControls(`service:${id}:tasks`, taskRows, {
+  sortOptions: taskSortOptions,
+  defaultSortBy: 'Slot'
+})
 
 const tab = ref<'tasks' | 'logs' | 'config'>('tasks')
 
@@ -116,8 +128,15 @@ async function remove() {
 
       <!-- tasks -->
       <div v-if="tab === 'tasks'" class="space-y-2">
-        <div v-if="!data?.tasks?.length" class="panel p-10 text-center text-sm text-(--color-muted)">No tasks.</div>
-        <div v-for="t in data?.tasks" :key="t.ID" class="panel-flush p-3 grid grid-cols-2 gap-2 sm:grid-cols-12 sm:items-center text-sm">
+        <ListControls
+          v-model:search="search"
+          v-model:sort-by="sortBy"
+          v-model:sort-dir="sortDir"
+          :sort-options="sortOptions"
+          placeholder="Search service tasks"
+        />
+        <div v-if="!filteredTasks.length" class="panel p-10 text-center text-sm text-(--color-muted)">No tasks.</div>
+        <div v-for="t in filteredTasks" :key="t.ID" class="panel-flush p-3 grid grid-cols-2 gap-2 sm:grid-cols-12 sm:items-center text-sm">
           <div class="sm:col-span-1 font-mono text-(--color-muted)">#{{ t.Slot ?? '—' }}</div>
           <div class="sm:col-span-3"><StatusBadge :state="t.Status?.State" /></div>
           <div class="sm:col-span-3 font-mono text-xs text-(--color-muted) truncate">{{ short(t.NodeID) }}</div>

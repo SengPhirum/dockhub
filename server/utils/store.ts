@@ -21,6 +21,7 @@ export interface UserPreferences {
   theme: 'system' | 'dark' | 'light'
   refreshInterval: number   // seconds; 0 = manual
   density: 'default' | 'compact' | 'comfortable'
+  lists: Record<string, { sortBy: string; sortDir: 'asc' | 'desc' }>
 }
 
 export interface AuditEntry {
@@ -201,28 +202,55 @@ export async function touchLogin(username: string): Promise<void> {
 export async function getUserPreferences(userId: string): Promise<UserPreferences> {
   const db = getDb()
   const row = db.prepare('SELECT * FROM user_preferences WHERE user_id = ?').get(userId) as any
-  if (!row) return { theme: 'system', refreshInterval: 0, density: 'default' }
+  if (!row) return { theme: 'system', refreshInterval: 0, density: 'default', lists: {} }
+  const data = parsePreferenceData(row.data)
   return {
     theme: row.theme as UserPreferences['theme'],
     refreshInterval: row.refresh_interval as number,
-    density: row.density as UserPreferences['density']
+    density: row.density as UserPreferences['density'],
+    lists: sanitizeListPreferences(data.lists)
   }
+}
+
+function parsePreferenceData(raw: string | null | undefined): Record<string, any> {
+  try {
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
+
+function sanitizeListPreferences(input: any): UserPreferences['lists'] {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return {}
+  const lists: UserPreferences['lists'] = {}
+  for (const [key, value] of Object.entries(input)) {
+    if (!value || typeof value !== 'object') continue
+    const sortBy = String((value as any).sortBy || '')
+    const sortDir = (value as any).sortDir === 'desc' ? 'desc' : 'asc'
+    if (key && sortBy) lists[key] = { sortBy, sortDir }
+  }
+  return lists
 }
 
 export async function updateUserPreferences(userId: string, patch: Partial<UserPreferences>): Promise<UserPreferences> {
   const db = getDb()
-  const exists = db.prepare('SELECT user_id FROM user_preferences WHERE user_id = ?').get(userId)
+  const existing = db.prepare('SELECT * FROM user_preferences WHERE user_id = ?').get(userId) as any
+  const currentData = parsePreferenceData(existing?.data)
+  const nextData = patch.lists !== undefined
+    ? { ...currentData, lists: sanitizeListPreferences(patch.lists) }
+    : currentData
 
-  if (!exists) {
+  if (!existing) {
     db.prepare(
-      'INSERT INTO user_preferences (user_id, theme, refresh_interval, density) VALUES (?, ?, ?, ?)'
-    ).run(userId, patch.theme ?? 'system', patch.refreshInterval ?? 0, patch.density ?? 'default')
+      'INSERT INTO user_preferences (user_id, theme, refresh_interval, density, data) VALUES (?, ?, ?, ?, ?)'
+    ).run(userId, patch.theme ?? 'system', patch.refreshInterval ?? 0, patch.density ?? 'default', JSON.stringify(nextData))
   } else {
     const fields: string[] = []
     const vals: any[] = []
     if (patch.theme !== undefined) { fields.push('theme = ?'); vals.push(patch.theme) }
     if (patch.refreshInterval !== undefined) { fields.push('refresh_interval = ?'); vals.push(patch.refreshInterval) }
     if (patch.density !== undefined) { fields.push('density = ?'); vals.push(patch.density) }
+    if (patch.lists !== undefined) { fields.push('data = ?'); vals.push(JSON.stringify(nextData)) }
     if (fields.length) {
       vals.push(userId)
       db.prepare(`UPDATE user_preferences SET ${fields.join(', ')} WHERE user_id = ?`).run(...vals)

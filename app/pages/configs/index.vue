@@ -3,6 +3,16 @@ const { can } = useAuth()
 const { relative, short } = useFormat()
 const toast = useToast()
 const { data, status, error, refresh } = await useFetch('/api/configs', { lazy: true })
+const configSortOptions = [
+  { label: 'Name', value: 'name' },
+  { label: 'Stack', value: 'stack' },
+  { label: 'Created', value: 'created' },
+  { label: 'Updated', value: 'updated' }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('configs', data, {
+  sortOptions: configSortOptions,
+  defaultSortBy: 'name'
+})
 
 const open = ref(false)
 const form = reactive({ name: '', data: '' })
@@ -48,9 +58,17 @@ async function remove(c: any) {
       </template>
     </PageHeader>
 
-    <DataState :status="status" :error="error" :empty="!data?.length" empty-label="No configs." empty-icon="i-lucide-file-cog">
+    <ListControls
+      v-model:search="search"
+      v-model:sort-by="sortBy"
+      v-model:sort-dir="sortDir"
+      :sort-options="sortOptions"
+      placeholder="Search configs"
+    />
+
+    <DataState :status="status" :error="error" :empty="!filtered.length" empty-label="No configs." empty-icon="i-lucide-file-cog">
       <div class="space-y-2">
-        <div v-for="c in data" :key="c.id" class="panel-flush p-3.5 grid grid-cols-2 gap-3 sm:grid-cols-12 sm:items-center">
+        <div v-for="c in filtered" :key="c.id" class="panel-flush p-3.5 grid grid-cols-2 gap-3 sm:grid-cols-12 sm:items-center">
           <div class="col-span-2 sm:col-span-6 min-w-0">
             <div class="flex items-center gap-2">
               <UIcon name="i-lucide-file-cog" class="size-4 text-(--color-muted)" />

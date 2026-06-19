@@ -14,10 +14,17 @@ useIntervalFn(() => {
   if (!connected.value && prefs.value.refreshInterval > 0) refresh()
 }, computed(() => prefs.value.refreshInterval > 0 ? prefs.value.refreshInterval * 1000 : 60_000), { immediate: false })
 
-const search = ref('')
-const filtered = computed(() => {
-  const q = search.value.toLowerCase()
-  return (data.value ?? []).filter((s: any) => !q || s.name?.toLowerCase().includes(q))
+const stackSortOptions = [
+  { label: 'Name', value: 'name' },
+  { label: 'Services', value: 'services' },
+  { label: 'Running tasks', value: 'runningTasks' },
+  { label: 'Desired tasks', value: 'desiredTasks' },
+  { label: 'Networks', value: 'networks' },
+  { label: 'Git tracked', value: 'inGit' }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('stacks', data, {
+  sortOptions: stackSortOptions,
+  defaultSortBy: 'name'
 })
 
 const open = ref(false)
@@ -68,11 +75,18 @@ async function deploy() {
           <span class="dot" :class="connected ? 'dot-running' : 'dot-idle'" />
           {{ connected ? 'Live' : prefs.refreshInterval > 0 ? `${prefs.refreshInterval}s` : 'Manual' }}
         </div>
-        <UInput v-model="search" icon="i-lucide-search" placeholder="Filter stacks" class="w-40 sm:w-52" />
         <UButton icon="i-lucide-refresh-cw" color="neutral" variant="soft" :loading="refreshing" @click="refresh()" />
         <UButton v-if="can('operator')" icon="i-lucide-rocket" color="primary" label="Deploy stack" @click="openDeploy" />
       </template>
     </PageHeader>
+
+    <ListControls
+      v-model:search="search"
+      v-model:sort-by="sortBy"
+      v-model:sort-dir="sortDir"
+      :sort-options="sortOptions"
+      placeholder="Search stacks"
+    />
 
     <div v-if="gl && !gl.enabled" class="notice-warning panel p-3 mb-4 flex items-center gap-2 text-sm">
       <UIcon name="i-lucide-info" class="size-4 shrink-0" />

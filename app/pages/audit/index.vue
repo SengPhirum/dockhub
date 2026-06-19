@@ -4,10 +4,16 @@ const { relative } = useFormat()
 const { data, status, error, refreshing, refresh } = useApiCache('audit', () => $fetch<any[]>('/api/system/audit'))
 onMounted(refresh)
 
-const search = ref('')
-const filtered = computed(() => {
-  const q = search.value.toLowerCase()
-  return (data.value ?? []).filter((a: any) => !q || a.actor?.toLowerCase().includes(q) || a.action?.toLowerCase().includes(q) || a.target?.toLowerCase().includes(q))
+const auditSortOptions = [
+  { label: 'Time', value: 'ts' },
+  { label: 'Actor', value: 'actor' },
+  { label: 'Action', value: 'action' },
+  { label: 'Target', value: 'target' }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('audit', data, {
+  sortOptions: auditSortOptions,
+  defaultSortBy: 'ts',
+  defaultSortDir: 'desc'
 })
 
 const icon: Record<string, string> = {
@@ -25,10 +31,17 @@ function actionIcon(action: string) {
   <div>
     <PageHeader title="Audit log" subtitle="Every state-changing action, with actor and target" icon="i-lucide-scroll">
       <template #actions>
-        <UInput v-model="search" icon="i-lucide-search" placeholder="Filter log" class="w-40 sm:w-52" />
         <UButton icon="i-lucide-refresh-cw" color="neutral" variant="soft" :loading="refreshing" @click="refresh()" />
       </template>
     </PageHeader>
+
+    <ListControls
+      v-model:search="search"
+      v-model:sort-by="sortBy"
+      v-model:sort-dir="sortDir"
+      :sort-options="sortOptions"
+      placeholder="Search audit log"
+    />
 
     <DataState :status="status" :error="error" :empty="!filtered.length" :refreshing="refreshing" empty-label="No audit entries yet." empty-icon="i-lucide-scroll">
       <div class="space-y-1.5">

@@ -5,6 +5,7 @@
 // stats snapshot back to the DockHub app, which is how it learns the usage
 // of nodes it isn't running on. Mirrors swarmpit-agent's role, kept minimal.
 import http from 'node:http'
+import { statfs } from 'node:fs/promises'
 
 const SOCKET_PATH = process.env.DOCKER_SOCKET_PATH || '/var/run/docker.sock'
 const TARGET_URL = process.env.DOCKHUB_AGENT_URL || 'http://dockhub_app:3000/api/agent/report'
@@ -62,6 +63,40 @@ function dockerDfUsedBytes(df) {
   return used
 }
 
+function filesystemDiskUsage(stats, path, dockerUsedBytes) {
+  const blockSize = Number(stats?.bsize || 0)
+  const blocks = Number(stats?.blocks || 0)
+  const freeBlocks = Number(stats?.bfree || 0)
+  const availableBlocks = Number(stats?.bavail ?? freeBlocks)
+  const totalBytes = blockSize * blocks
+  const freeBytes = blockSize * freeBlocks
+  const availableBytes = blockSize * availableBlocks
+  const usedBytes = Math.max(0, totalBytes - freeBytes)
+  const percent = totalBytes > 0 ? Math.min(100, (usedBytes / totalBytes) * 100) : 0
+
+  return {
+    usedBytes,
+    totalBytes,
+    availableBytes,
+    percent: round(percent, 1),
+    dockerUsedBytes,
+    path
+  }
+}
+
+async function collectDiskUsage(paths, dockerUsedBytes) {
+  const candidates = [...new Set(paths.filter(Boolean))]
+  for (const path of candidates) {
+    try {
+      const stats = await statfs(path)
+      return filesystemDiskUsage(stats, path, dockerUsedBytes)
+    } catch {
+      // Keep trying fallbacks; DockerRootDir is often not mounted inside the agent container.
+    }
+  }
+  return { usedBytes: dockerUsedBytes, dockerUsedBytes }
+}
+
 async function collect() {
   const info = await dockerGet('/info')
   const nodeId = info?.Swarm?.NodeID
@@ -89,13 +124,15 @@ async function collect() {
 
   const memoryUsedBytes = stats.reduce((total, item) => total + (item ? containerMemoryBytes(item) : 0), 0)
   const memoryPercent = memoryTotal > 0 ? Math.min(100, (memoryUsedBytes / memoryTotal) * 100) : 0
+  const dockerUsedBytes = dockerDfUsedBytes(df)
+  const disk = await collectDiskUsage([info.DockerRootDir, '/', '/var/lib/docker'], dockerUsedBytes)
 
   return {
     nodeId,
     hostname: info.Name,
     cpu: { cores: round(cpuCores, 3), percent: round(cpuPercent, 1) },
     memory: { usedBytes: memoryUsedBytes, totalBytes: memoryTotal, percent: round(memoryPercent, 1) },
-    disk: { usedBytes: dockerDfUsedBytes(df) },
+    disk,
     containers: { running: (containers || []).length, sampled: stats.filter(Boolean).length }
   }
 }

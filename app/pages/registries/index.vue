@@ -3,6 +3,15 @@ const toast = useToast()
 
 const { data, status, error, refreshing, refresh } = useApiCache('registries', () => $fetch<any[]>('/api/registries'))
 onMounted(refresh)
+const registrySortOptions = [
+  { label: 'Name', value: 'name' },
+  { label: 'URL', value: 'url' },
+  { label: 'Username', value: 'username' }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('registries', data, {
+  sortOptions: registrySortOptions,
+  defaultSortBy: 'name'
+})
 
 const open = ref(false)
 const form = reactive({ name: '', url: '', username: '', password: '' })
@@ -44,9 +53,17 @@ async function remove(r: any) {
       </template>
     </PageHeader>
 
-    <DataState :status="status" :error="error" :empty="!data?.length" :refreshing="refreshing" empty-label="No registries configured." empty-icon="i-lucide-container">
+    <ListControls
+      v-model:search="search"
+      v-model:sort-by="sortBy"
+      v-model:sort-dir="sortDir"
+      :sort-options="sortOptions"
+      placeholder="Search registries"
+    />
+
+    <DataState :status="status" :error="error" :empty="!filtered.length" :refreshing="refreshing" empty-label="No registries configured." empty-icon="i-lucide-container">
       <TransitionGroup name="list" tag="div" class="space-y-2">
-        <div v-for="r in data" :key="r.id" class="panel-flush p-3.5 flex items-center justify-between gap-3">
+        <div v-for="r in filtered" :key="r.id" class="panel-flush p-3.5 flex items-center justify-between gap-3">
           <div class="min-w-0 flex items-center gap-3">
             <span class="flex size-9 items-center justify-center rounded-lg bg-surface-2 ring-1 ring-hull shrink-0">
               <UIcon name="i-lucide-container" class="size-4 text-beacon" />

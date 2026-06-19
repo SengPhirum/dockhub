@@ -13,10 +13,16 @@ useIntervalFn(() => {
   if (!connected.value && prefs.value.refreshInterval > 0) refresh()
 }, computed(() => prefs.value.refreshInterval > 0 ? prefs.value.refreshInterval * 1000 : 60_000), { immediate: false })
 
-const search = ref('')
-const filtered = computed(() => {
-  const q = search.value.toLowerCase()
-  return (data.value ?? []).filter((c: any) => !q || c.name?.toLowerCase().includes(q) || c.image?.toLowerCase().includes(q))
+const containerSortOptions = [
+  { label: 'Name', value: 'name' },
+  { label: 'Image', value: 'image' },
+  { label: 'State', value: 'state' },
+  { label: 'Status', value: 'status' },
+  { label: 'Created', value: 'created' }
+]
+const { items: filtered, search, sortBy, sortDir, sortOptions } = useListControls('containers', data, {
+  sortOptions: containerSortOptions,
+  defaultSortBy: 'name'
 })
 
 const logsOpen = ref(false)
@@ -60,10 +66,17 @@ function menu(c: any) {
           <span class="dot" :class="connected ? 'dot-running' : 'dot-idle'" />
           {{ connected ? 'Live' : prefs.refreshInterval > 0 ? `${prefs.refreshInterval}s` : 'Manual' }}
         </div>
-        <UInput v-model="search" icon="i-lucide-search" placeholder="Filter containers" class="w-40 sm:w-52" />
         <UButton icon="i-lucide-refresh-cw" color="neutral" variant="soft" :loading="refreshing" @click="refresh()" />
       </template>
     </PageHeader>
+
+    <ListControls
+      v-model:search="search"
+      v-model:sort-by="sortBy"
+      v-model:sort-dir="sortDir"
+      :sort-options="sortOptions"
+      placeholder="Search containers"
+    />
 
     <DataState :status="status" :error="error" :empty="!filtered.length" :refreshing="refreshing" empty-label="No containers." empty-icon="i-lucide-container">
       <TransitionGroup name="list" tag="div" class="space-y-2">
