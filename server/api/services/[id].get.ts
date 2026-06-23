@@ -18,6 +18,10 @@ export default defineEventHandler(async (event) => {
   ])
 
   const nodeById = new Map((nodes as any[]).map((n) => [n.ID, n.Description?.Hostname || n.ID]))
+  const nodeCapacityById = new Map((nodes as any[]).map((n) => [n.ID, {
+    cpuNanos: n.Description?.Resources?.NanoCPUs || 0,
+    memoryBytes: n.Description?.Resources?.MemoryBytes || 0
+  }]))
   const networkById = new Map((networks as any[]).map((n) => [n.Id, n]))
   const volumeByName = new Map(((volumeList as any)?.Volumes || []).map((v: any) => [v.Name, v]))
   const runningTaskIds = new Set(
@@ -26,7 +30,7 @@ export default defineEventHandler(async (event) => {
       .map((task) => task.ID)
       .filter(Boolean)
   )
-  const metrics = await latestServiceMetrics(id, [...runningTaskIds])
+  const metrics = await latestServiceMetrics(id, [...runningTaskIds], nodeCapacityById)
 
   const spec = service.Spec || {}
   const taskTemplate = spec.TaskTemplate || {}
@@ -151,7 +155,7 @@ export default defineEventHandler(async (event) => {
   }
 })
 
-async function latestServiceMetrics(serviceId: string, runningTaskIds: string[]) {
+async function latestServiceMetrics(serviceId: string, runningTaskIds: string[], nodeCapacityById: Map<string, { cpuNanos: number; memoryBytes: number }>) {
   if (!runningTaskIds.length) return emptyServiceMetrics()
 
   try {
@@ -176,6 +180,7 @@ async function latestServiceMetrics(serviceId: string, runningTaskIds: string[])
     let memoryUsedBytes = 0
     let memoryLimitBytes = 0
     let sampledAt: string | null = null
+    const nodeIds = new Set<string>()
     for (const row of rows) {
       const metric = {
         sampledAt: row.time,
@@ -191,8 +196,21 @@ async function latestServiceMetrics(serviceId: string, runningTaskIds: string[])
       cpuPercent += metric.cpuPercent
       memoryUsedBytes += metric.memoryUsedBytes
       memoryLimitBytes += metric.memoryLimitBytes
+      if (metric.nodeId) nodeIds.add(metric.nodeId)
       if (!sampledAt || new Date(metric.sampledAt).getTime() > new Date(sampledAt).getTime()) sampledAt = metric.sampledAt
       if (metric.taskId) byTask.set(metric.taskId, metric)
+    }
+    // Combined capacity of the node(s) actually running this service right
+    // now - the comparison ceiling for services with no CPU/memory
+    // reservation or limit of their own configured.
+    let nodeCpuNanos = 0
+    let nodeMemoryBytes = 0
+    for (const nodeId of nodeIds) {
+      const cap = nodeCapacityById.get(nodeId)
+      if (cap) {
+        nodeCpuNanos += cap.cpuNanos
+        nodeMemoryBytes += cap.memoryBytes
+      }
     }
     return {
       byTask,
@@ -202,7 +220,9 @@ async function latestServiceMetrics(serviceId: string, runningTaskIds: string[])
         containers: rows.length,
         cpuPercent,
         memoryUsedBytes,
-        memoryLimitBytes
+        memoryLimitBytes,
+        nodeCpuNanos,
+        nodeMemoryBytes
       }
     }
   } catch {
@@ -219,7 +239,9 @@ function emptyServiceMetrics() {
       containers: 0,
       cpuPercent: 0,
       memoryUsedBytes: 0,
-      memoryLimitBytes: 0
+      memoryLimitBytes: 0,
+      nodeCpuNanos: 0,
+      nodeMemoryBytes: 0
     }
   }
 }

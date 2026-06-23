@@ -181,9 +181,22 @@ function resourceMemoryBytes() {
   return resources.value.reservedMemoryBytesTotal || resources.value.limitMemoryBytesTotal || 0
 }
 
+// Comparison ceiling for the ring fill: the service's own reservation/limit
+// when configured, otherwise the combined capacity of the node(s) currently
+// running it - so a service with no resource config still gets a meaningful
+// percentage instead of an empty/misleading ring.
+function cpuCeilingNano() {
+  return resourceCpuNano() || currentUsage.value.nodeCpuNanos || 0
+}
+
+function memoryCeilingBytes() {
+  return resourceMemoryBytes() || currentUsage.value.nodeMemoryBytes || 0
+}
+
 function resourceBasis() {
   if (resources.value.reservedNanoCpusTotal || resources.value.reservedMemoryBytesTotal) return 'reserved'
   if (resources.value.limitNanoCpusTotal || resources.value.limitMemoryBytesTotal) return 'limit'
+  if (currentUsage.value.nodeCpuNanos || currentUsage.value.nodeMemoryBytes) return 'node capacity'
   return 'not set'
 }
 
@@ -198,7 +211,7 @@ function percentLabel(value?: number | null) {
 }
 
 function usageMemoryPercent() {
-  return memoryPercent(currentUsage.value.memoryUsedBytes, currentUsage.value.memoryLimitBytes)
+  return memoryPercent(currentUsage.value.memoryUsedBytes, memoryCeilingBytes() || currentUsage.value.memoryLimitBytes)
 }
 
 function clampPercent(value?: number | null) {
@@ -227,13 +240,23 @@ function replicaDetail() {
 
 function cpuRingPercent() {
   if (!currentUsage.value.available) return 0
-  const allocated = resourceCpuNano() / 1e9
-  if (allocated > 0) return (Number(currentUsage.value.cpuPercent || 0) / (allocated * 100)) * 100
+  const ceiling = cpuCeilingNano() / 1e9
+  if (ceiling > 0) return (Number(currentUsage.value.cpuPercent || 0) / (ceiling * 100)) * 100
   return Number(currentUsage.value.cpuPercent || 0)
 }
 
+// Ring center label: the configured allocation when there is one, otherwise
+// live usage (more useful than a static "-") - distinct from the ring fill's
+// ceiling, which prefers node capacity once no allocation is configured.
+function cpuHeadline() {
+  if (resourceCpuNano()) return formatNanoCpus(resourceCpuNano())
+  if (currentUsage.value.available) return cpus(Number(currentUsage.value.cpuPercent || 0) / 100)
+  return '-'
+}
+
 function cpuDetail() {
-  const allocated = resourceCpuNano() ? `${formatNanoCpus(resourceCpuNano())} ${resourceBasis()}` : 'No CPU reservation or limit'
+  const ceilingNano = cpuCeilingNano()
+  const allocated = ceilingNano ? `${formatNanoCpus(ceilingNano)} ${resourceBasis()}` : 'No CPU reservation or limit'
   if (!currentUsage.value.available) return `${allocated}. Waiting for current usage samples.`
   return `${percentLabel(currentUsage.value.cpuPercent)} CPU now (${cpus(Number(currentUsage.value.cpuPercent || 0) / 100)}), ${allocated}.`
 }
@@ -243,10 +266,17 @@ function memoryRingPercent() {
   return usageMemoryPercent() ?? 0
 }
 
+function memoryHeadline() {
+  if (resourceMemoryBytes()) return formatBytes(resourceMemoryBytes())
+  if (currentUsage.value.available) return formatBytes(currentUsage.value.memoryUsedBytes)
+  return '-'
+}
+
 function memoryDetail() {
-  const allocated = resourceMemoryBytes() ? `${formatBytes(resourceMemoryBytes())} ${resourceBasis()}` : 'No memory reservation or limit'
+  const ceilingBytes = memoryCeilingBytes()
+  const allocated = ceilingBytes ? `${formatBytes(ceilingBytes)} ${resourceBasis()}` : 'No memory reservation or limit'
   if (!currentUsage.value.available) return `${allocated}. Waiting for current usage samples.`
-  return `${formatBytes(currentUsage.value.memoryUsedBytes)} used / ${formatBytes(currentUsage.value.memoryLimitBytes || resourceMemoryBytes())} (${percentLabel(memoryRingPercent())}), ${allocated}.`
+  return `${formatBytes(currentUsage.value.memoryUsedBytes)} used / ${formatBytes(ceilingBytes || currentUsage.value.memoryLimitBytes)} (${percentLabel(memoryRingPercent())}), ${allocated}.`
 }
 
 function taskMemoryLabel(task: any) {
@@ -346,7 +376,7 @@ function configRows(config: any) {
                 <div class="summary-ring-wrap" :title="cpuDetail()">
                   <div class="summary-ring mx-auto size-20 sm:size-24" :style="ringStyle(cpuRingPercent())" tabindex="0" :aria-label="cpuDetail()">
                     <div class="summary-ring-inner">
-                      <p class="font-mono text-sm font-semibold text-foam">{{ formatNanoCpus(resourceCpuNano()) }}</p>
+                      <p class="font-mono text-sm font-semibold text-foam">{{ cpuHeadline() }}</p>
                       <p class="text-[10px] leading-tight text-faint">vCPU</p>
                     </div>
                   </div>
@@ -357,7 +387,7 @@ function configRows(config: any) {
                 <div class="summary-ring-wrap" :title="memoryDetail()">
                   <div class="summary-ring mx-auto size-20 sm:size-24" :style="ringStyle(memoryRingPercent())" tabindex="0" :aria-label="memoryDetail()">
                     <div class="summary-ring-inner">
-                      <p class="font-mono text-xs font-semibold text-foam">{{ formatBytes(resourceMemoryBytes()) }}</p>
+                      <p class="font-mono text-xs font-semibold text-foam">{{ memoryHeadline() }}</p>
                       <p class="text-[10px] leading-tight text-faint">RAM</p>
                     </div>
                   </div>

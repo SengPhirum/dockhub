@@ -82,14 +82,18 @@ function replicaPercent(svc: any) {
 function cpuRingPercent(svc: any) {
   const usage = usageById.value.get(svc.id)
   if (!usage?.available) return 0
-  const allocated = resourceNanoCpus(svc) / 1e9
-  if (allocated > 0) return (Number(usage.cpuPercent || 0) / (allocated * 100)) * 100
+  // Compare against the service's own allocation when configured, otherwise
+  // fall back to the capacity of the node(s) it's actually running on -
+  // a raw "percent of one core" is meaningless on a multi-core node.
+  const ceiling = (resourceNanoCpus(svc) || usage.nodeCpuNanos || 0) / 1e9
+  if (ceiling > 0) return (Number(usage.cpuPercent || 0) / (ceiling * 100)) * 100
   return Number(usage.cpuPercent || 0)
 }
 function memoryRingPercent(svc: any) {
   const usage = usageById.value.get(svc.id)
   if (!usage?.available) return 0
-  return memoryPercent(usage.memoryUsedBytes, usage.memoryLimitBytes || resourceMemory(svc)) ?? 0
+  const ceiling = resourceMemory(svc) || usage.nodeMemoryBytes || usage.memoryLimitBytes
+  return memoryPercent(usage.memoryUsedBytes, ceiling) ?? 0
 }
 
 const scaleTarget = ref<any>(null)
@@ -180,17 +184,25 @@ function resourceMemory(svc: any) {
 function resourceHint(svc: any) {
   if (svc.resources?.reservedNanoCpusTotal || svc.resources?.reservedMemoryBytesTotal) return 'reserved'
   if (svc.resources?.limitNanoCpusTotal || svc.resources?.limitMemoryBytesTotal) return 'limit'
+  if (usageById.value.get(svc.id)?.available) return 'live usage'
   return 'not set'
 }
 
+// Configured allocation when there's one, otherwise live usage (more useful
+// than a static "-") - the ring fill still compares against node capacity
+// separately, see cpuRingPercent/memoryRingPercent.
 function cpuValue(svc: any) {
   const value = resourceNanoCpus(svc)
-  return value ? cpus(value / 1e9) : '-'
+  if (value) return cpus(value / 1e9)
+  const usage = usageById.value.get(svc.id)
+  return usage?.available ? cpus(Number(usage.cpuPercent || 0) / 100) : '-'
 }
 
 function memoryValue(svc: any) {
   const value = resourceMemory(svc)
-  return value ? bytes(value) : '-'
+  if (value) return bytes(value)
+  const usage = usageById.value.get(svc.id)
+  return usage?.available ? bytes(usage.memoryUsedBytes) : '-'
 }
 </script>
 

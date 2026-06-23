@@ -7,8 +7,8 @@ export default defineEventHandler(async (event) => {
   const name = getRouterParam(event, 'name')!
   const removeFromGit = getQuery(event).git === 'true'
   const res = await removeStack(name)
-  if (removeFromGit && gitlabEnabled()) {
-    await deleteStackFile(name, `Remove ${name} via DockHub`).catch(() => {})
+  if (removeFromGit && (await gitlabEnabled())) {
+    await deleteStackFile(name, `Remove ${name} via DockHub`, user.displayName, `${user.username}@dockhub`).catch(() => {})
   }
   await audit({ actor: user.username, action: 'stack.remove', target: name })
   return res

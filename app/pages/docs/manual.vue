@@ -35,8 +35,9 @@ const featureGuides = [
     steps: [
       'Open Stacks, add or edit a compose file, then deploy it.',
       'Use service names, images, ports, networks, volumes, secrets, and configs supported by DockHub.',
-      'When GitLab is configured, review commit history and roll back to a previous compose version.',
-      'Watch service and task pages after deployment to verify replicas converge.'
+      'When GitLab is configured, review commit history and roll back to a previous compose version; each commit is attributed to the full name of the DockHub user who made the change.',
+      'Watch service and task pages after deployment to verify replicas converge.',
+      'Remove stops a stack\'s services but keeps its GitLab definition for history. Once a stack shows status Defined (in GitLab but not deployed), use Delete from GitLab to permanently remove the compose file too - this is irreversible and prompts for confirmation.'
     ],
     shot: {
       label: 'Stack detail',
@@ -248,12 +249,14 @@ const featureGuides = [
     id: 'settings',
     title: 'Settings',
     icon: 'i-lucide-settings',
-    summary: 'Configure integration defaults, authentication providers, and UI-backed system settings.',
+    summary: 'Configure appearance, integration defaults, authentication providers, alerts, and UI-backed system settings - all admin-only.',
     steps: [
       'Use Authentication settings to enable LDAP or OIDC from the UI.',
+      'Use Integrations to configure GitLab without touching container env; the status dot is only green when DockHub actually reaches it.',
+      'Use Alerts to add notification channels (Telegram/Teams/Webhook) and tune which conditions notify you, with custom message templates.',
       'Save provider settings to store database overrides instead of editing container env.',
       'Use env defaults when you want to delete a saved override and return to .env values.',
-      'Keep secrets masked in the UI unless you are actively rotating them.'
+      'Keep secrets masked in the UI unless you are actively rotating them - all of them are encrypted at rest.'
     ],
     shot: {
       label: 'Authentication',

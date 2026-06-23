@@ -2,7 +2,7 @@
 
 **Run your Docker Swarm from one hub.** A modern, responsive web console for managing Docker Swarm clusters - built in the spirit of Swarmpit, with the operational depth of Portainer and the GitOps convenience of Dokploy.
 
-DockHub gives you live control of nodes, services, stacks, tasks, networks, volumes, secrets, and configs from a single operations hub - with **LDAP authentication**, **role-based access control**, and **GitLab-backed versioning** of every stack's compose file so you can see history and roll back with one click.
+DockHub gives you live control of nodes, services, stacks, tasks, networks, volumes, secrets, and configs from a single operations hub - with **LDAP/OIDC authentication**, **role-based access control**, **GitLab-backed versioning** of every stack's compose file so you can see history and roll back with one click, and **alerting** (Telegram/Teams/Webhook) when something needs attention. All stored credentials (LDAP, OIDC, registries, GitLab, alert channels) are encrypted at rest.
 
 Built on **Nuxt 4** + **Nuxt UI 4** + **Tailwind v4**.
 
@@ -11,9 +11,11 @@ Built on **Nuxt 4** + **Nuxt UI 4** + **Tailwind v4**.
 ## Highlights
 
 - **Live swarm control** - nodes (drain/pause/activate, promote/demote, labels, remove), services (scale, redeploy, rolling image updates, logs, delete), tasks, and raw containers.
-- **Stacks, versioned in Git** - deploy stacks from compose YAML; every deploy is committed to GitLab first, giving you a full change history and one-click **rollback** to any previous commit.
+- **Stacks, versioned in Git** - deploy stacks from compose YAML; every deploy is committed to GitLab first, giving you a full change history and one-click **rollback** to any previous commit. GitLab is configurable entirely from Settings -> Integrations (no env vars required), with a status dot that's only green when DockHub actually reaches GitLab.
+- **Alerting** - notify Telegram, Microsoft Teams, or any generic webhook when a deploy fails, a service nears its CPU/memory limit, a node stops reporting, replicas stay degraded, or disk usage crosses a threshold. Each rule has a default message template you can customize with `{{placeholder}}` fields.
 - **Data resources** - create and manage overlay networks, volumes, secrets (write-only), and configs.
-- **Auth & RBAC** - local accounts *and* LDAP login, with three roles: `viewer` (read-only), `operator` (deploy/scale/manage), and `admin` (users, registries, audit).
+- **Auth & RBAC** - local accounts, LDAP, and OIDC SSO, with three roles: `viewer` (read-only), `operator` (deploy/scale/manage), and `admin` (users, registries, audit, integrations, alerts).
+- **Encrypted credentials** - LDAP bind password, OIDC client secret, registry auth, GitLab token, and alert channel configs are all encrypted at rest (AES-256-GCM, derived from `NUXT_JWT_SECRET` - no extra key to manage).
 - **Audit log** - every state-changing action is recorded with actor, target, and detail.
 - **Private registries** - store pull credentials for private image registries.
 - **Responsive by design** - works from a phone on the server-room floor to an ultrawide on your desk.
@@ -137,10 +139,18 @@ Everything is configured through environment variables (full list in [`.env.exam
 
 | Variable | Purpose |
 | --- | --- |
-| `NUXT_JWT_SECRET` | Signs session cookies - **set a long random value in production**. |
+| `NUXT_JWT_SECRET` | Signs session cookies and derives the key used to encrypt stored credentials - **set a long random value in production**. |
 | `NUXT_DOCKER_SOCKET_PATH` | Docker socket path (default `/var/run/docker.sock`). |
 | `NUXT_DOCKER_HOST` / `NUXT_DOCKER_PORT` | Use a remote engine over TCP instead of the socket. Add `NUXT_DOCKER_CA` / `CERT` / `KEY` for TLS. |
 | `NUXT_ADMIN_USERNAME` / `NUXT_ADMIN_PASSWORD` | First-run admin seed. |
+| `NUXT_DB_HOST` / `PORT` / `NAME` / `USER` / `PASSWORD` / `SSL` / `POOL_MAX` | Postgres + TimescaleDB connection - stores app data (users, settings, audit) and metrics history. |
+| `NUXT_METRICS_RETENTION_DAYS` | How many days of node/container/disk/network metrics history to keep (default `30`). |
+
+Most integrations below (GitLab, LDAP, OIDC) follow the same pattern: an env var sets the **default**, and saving the equivalent form in **Settings** writes a **database override** that takes precedence until you reset it. Any credential field saved this way (passwords, tokens, client secrets) is encrypted at rest.
+
+### Appearance
+
+Settings -> Appearance lets an admin rebrand the running app without a rebuild: app name, primary brand color, the horizontal logo (login screen), the icon logo (sidebar/header), the **favicon** (browser tab icon), and the **PWA/app icon** (installed-app and home-screen icon, used for the manifest icons and the Apple touch icon). Each image is uploaded directly in the browser and stored inline (capped at 1.5 MB per image) - no object storage or extra volume needed. Changes preview live across the whole app as you edit, and aren't shared with other users until you click Save; "Reset to defaults" reverts to the built-in DockHub branding. The favicon and PWA icon take effect immediately for new visits - no rebuild or redeploy required, since `/manifest.webmanifest` is generated per-request from the current settings rather than baked in at build time.
 
 ### LDAP
 
@@ -154,16 +164,40 @@ Group mapping works like LDAP: the claim named by `NUXT_OIDC_GROUPS_CLAIM` (defa
 
 ### GitLab stack versioning
 
-Provide a GitLab token with **`api`** scope and a target project:
+Configure GitLab either via environment variables (first-run defaults) or entirely from **Settings -> Integrations** (saved as an encrypted database override - no container restart needed):
 
 ```text
-NUXT_GITLAB_TOKEN=glpat-...
+NUXT_GITLAB_URL=https://gitlab.com   # default
+NUXT_GITLAB_TOKEN=glpat-...          # needs api scope
 NUXT_GITLAB_PROJECT_ID=12345678
-NUXT_GITLAB_BRANCH=main          # default
-NUXT_GITLAB_STACKS_PATH=stacks   # default
+NUXT_GITLAB_BRANCH=main              # default
+NUXT_GITLAB_STACKS_PATH=stacks       # default
 ```
 
-Each stack is stored at `stacks/<name>.yml`. Deploying or editing a stack commits the new compose file (so the desired state is recorded even if the deploy fails), and the stack detail page shows the commit timeline with view + rollback. When GitLab isn't configured, stacks still deploy - they just aren't versioned.
+Each stack is stored at `stacks/<name>.yml`. Deploying or editing a stack commits the new compose file (so the desired state is recorded even if the deploy fails), and the stack detail page shows the commit timeline with view + rollback - the commit author is the full name of the DockHub user who triggered the change, so history stays attributable. When GitLab isn't configured, stacks still deploy - they just aren't versioned.
+
+The status dot next to GitLab in Settings is only green when DockHub actually reached GitLab with a working token - it distinguishes "not configured", "unreachable", and "invalid token" rather than just checking that fields are filled in. Removing a stack's running services (Remove) leaves its compose file in GitLab so history isn't lost; once a stack shows **Defined** (tracked in GitLab but not currently deployed), a second action - **Delete from GitLab** - is available from the stacks list or the stack page to permanently delete the compose file and history too. Both prompt for confirmation since they can't be undone.
+
+### Alerts
+
+Configure notification channels and alert rules from **Settings -> Alerts**. Three channel types are supported - Telegram (bot token + chat ID), Microsoft Teams (incoming webhook URL), and a generic Webhook (URL + custom headers) - and channel credentials are encrypted at rest like everything else. Add as many channels as you like; every enabled channel receives every alert that fires.
+
+Five alert rules ship with sensible defaults, each independently enabled/disabled and configurable:
+
+| Rule | Trigger |
+| --- | --- |
+| Deploy failed | A stack deploy, rollback, redeploy, image update, or scale operation fails. |
+| Service usage threshold | A service's CPU and/or memory usage crosses a configurable percentage (default 90%) of its limit/reservation/node capacity. |
+| Node down | A swarm node stops reporting heartbeats. |
+| Replicas degraded | A service stays under its desired replica count for longer than a configurable grace period. |
+| Disk usage threshold | A node's disk usage crosses a configurable percentage (default 85%). |
+
+Each rule has a default message template using `{{placeholder}}` fields (for example `{{target}}`, `{{error}}`, `{{cpuPercent}}`) - customize the template per rule from its card in Settings, or reset it back to the default at any time. The four threshold/health rules are checked on a poller (default every 3 minutes); deploy failures alert immediately.
+
+```text
+NUXT_ALERTS_ENABLED=true            # default
+NUXT_ALERTS_INTERVAL_MINUTES=3      # default; how often threshold/health rules are checked
+```
 
 ---
 
@@ -174,7 +208,7 @@ Each stack is stored at `stacks/<name>.yml`. Deploying or editing a stack commit
 | View everything | yes | yes | yes |
 | Scale / redeploy / deploy stacks |  | yes | yes |
 | Manage nodes, networks, volumes, secrets, configs |  | yes | yes |
-| Manage users, registries, view audit log |  |  | yes |
+| Manage users, registries, audit log, integrations (GitLab), alerts |  |  | yes |
 
 ---
 
@@ -188,15 +222,15 @@ Docker Swarm has no native stack API - `docker stack` is a client-side conventio
 
 This is a real, runnable foundation that implements the core of every area above against the live Docker Engine API. In the interest of honesty:
 
-**Implemented:** live read + control for nodes/services/stacks/tasks/networks/volumes/secrets/configs/containers; local + LDAP auth with JWT/RBAC; GitLab commit history and rollback; audit logging; private registry storage; service log viewing (tail); responsive UI throughout.
+**Implemented:** live read + control for nodes/services/stacks/tasks/networks/volumes/secrets/configs/containers; local + LDAP + OIDC auth with JWT/RBAC; GitLab commit history and rollback, fully UI-configurable; encrypted credential storage; alerting to Telegram/Teams/Webhook with customizable templates; per-node/container metrics history (Postgres + TimescaleDB) with charts on node and service pages; audit logging; private registry storage; service log viewing (tail); responsive UI throughout.
 
-**Natural next steps (roadmap):** streaming/live-follow logs over WebSockets, per-task CPU/memory metrics and charts, container exec/terminal, compose validation with a richer translator, multi-cluster endpoints, webhook-driven GitOps redeploys, and 2FA. The architecture leaves clean seams for each.
+**Natural next steps (roadmap):** streaming/live-follow logs over WebSockets, container exec/terminal, compose validation with a richer translator, multi-cluster endpoints, webhook-driven GitOps redeploys, and 2FA. The architecture leaves clean seams for each.
 
 ---
 
 ## Tech
 
-Nuxt 4 (Nitro server + Vue 3) · Nuxt UI 4 · Tailwind v4 · dockerode · ldapts · jose (JWT) · lowdb · GitLab REST v4. Single deployable Node server - no external database required.
+Nuxt 4 (Nitro server + Vue 3) · Nuxt UI 4 · Tailwind v4 · dockerode · ldapts · jose (JWT) · Postgres + TimescaleDB (`pg`) · chart.js · GitLab REST v4. Single deployable Node server.
 
 ---
 

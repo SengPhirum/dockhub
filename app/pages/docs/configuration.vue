@@ -10,21 +10,44 @@ const configurationSections = [
         id: 'runtime-config',
         title: 'Runtime configuration model',
         icon: 'i-lucide-sliders-horizontal',
-        summary: 'Environment variables provide first-run defaults. Authentication settings saved in the UI are stored in SQLite and override those defaults until reset.',
+        summary: 'Environment variables provide first-run defaults. Authentication, GitLab, Alerts, and Appearance settings saved in the UI are stored in Postgres and override those defaults until reset.',
         options: [
-          ['NUXT_DATA_DIR', 'Directory for the SQLite user, audit, and app settings database. Defaults to ./.data.'],
-          ['NUXT_JWT_SECRET', 'Secret used to sign session tokens. Use a long random value in production.'],
+          ['NUXT_JWT_SECRET', 'Secret used to sign session tokens and to derive the key that encrypts stored credentials. Use a long random value in production.'],
           ['NUXT_ADMIN_USERNAME', 'First-run local admin username, created only when no users exist.'],
           ['NUXT_ADMIN_PASSWORD', 'First-run local admin password, created only when no users exist.'],
-          ['NUXT_PUBLIC_APP_NAME', 'Safe public label displayed in the app header and browser metadata.']
+          ['NUXT_DB_HOST / PORT / NAME / USER / PASSWORD', 'Postgres + TimescaleDB connection. Stores users, settings, audit log, and metrics history.'],
+          ['NUXT_METRICS_RETENTION_DAYS', 'Days of node/container/disk/network metrics history kept before it is dropped. Defaults to 30.'],
+          ['NUXT_PUBLIC_APP_NAME', 'Default app name shown in the header and browser metadata; Settings > Appearance can override it, plus the logo and brand color, without restarting.']
         ],
         steps: [
           'Copy .env.example to .env before the first run.',
           'Set NUXT_JWT_SECRET and the first-run admin credentials before production use.',
-          'Choose NUXT_DATA_DIR before running containers so the database path is stable.',
-          'Use Settings > Authentication for LDAP and OIDC changes that should be stored in the database.'
+          'Point NUXT_DB_* at a reachable Postgres + TimescaleDB instance before starting the app.',
+          'Use Settings for LDAP, OIDC, GitLab, Alerts, and Appearance changes that should be stored in the database instead of container env.'
         ],
-        env: ['NUXT_DATA_DIR', 'NUXT_JWT_SECRET', 'NUXT_ADMIN_USERNAME', 'NUXT_ADMIN_PASSWORD', 'NUXT_PUBLIC_APP_NAME']
+        env: ['NUXT_JWT_SECRET', 'NUXT_ADMIN_USERNAME', 'NUXT_ADMIN_PASSWORD', 'NUXT_DB_HOST', 'NUXT_DB_PORT', 'NUXT_DB_NAME', 'NUXT_DB_USER', 'NUXT_DB_PASSWORD', 'NUXT_METRICS_RETENTION_DAYS', 'NUXT_PUBLIC_APP_NAME']
+      },
+      {
+        id: 'appearance-config',
+        title: 'Appearance & branding',
+        icon: 'i-lucide-paintbrush',
+        summary: 'Rebrand the running app without a rebuild: app name, brand color, logos, favicon, and PWA/app icon. Saved from Settings > Appearance as a database override - no env vars required.',
+        options: [
+          ['App name', 'Shown in the sidebar header, browser tab title, and PWA manifest name. Defaults to NUXT_PUBLIC_APP_NAME or "DockHub".'],
+          ['Primary color', 'Hex color driving buttons, links, and accents app-wide, plus the PWA theme color.'],
+          ['Horizontal logo', 'Wordmark shown on the login screen. Falls back to the built-in DockHub logo when unset.'],
+          ['Icon logo', 'Square icon shown in the sidebar and header. Falls back to the built-in DockHub icon when unset.'],
+          ['Favicon', 'Browser tab icon. Falls back to the built-in favicon set when unset.'],
+          ['PWA / app icon', 'Installed-app and home-screen icon - drives the web app manifest icons and the Apple touch icon. Falls back to the built-in icon set when unset.']
+        ],
+        steps: [
+          'Open Settings > Appearance (admin only).',
+          'Edit the app name and color, and/or upload logos, favicon, and PWA icon - each under about 1.5 MB.',
+          'Watch the live preview update instantly; nothing is shared with other users yet.',
+          'Click Save appearance to apply for everyone, or Revert preview to discard unsaved edits.',
+          'Use Reset to defaults to remove the database override and return to the built-in branding. Favicon and PWA icon changes take effect immediately on the next page load - no rebuild needed.'
+        ],
+        env: ['NUXT_PUBLIC_APP_NAME']
       },
       {
         id: 'docker-config',
@@ -51,22 +74,106 @@ const configurationSections = [
         id: 'gitlab-config',
         title: 'GitLab stack versioning',
         icon: 'i-lucide-git-branch',
-        summary: 'GitLab stores compose files under a repository path so stack changes have commit history and rollback points.',
+        summary: 'GitLab stores compose files under a repository path so stack changes have commit history and rollback points. Configure it from environment defaults or entirely from Settings > Integrations - the token is encrypted at rest either way.',
         options: [
           ['NUXT_GITLAB_URL', 'GitLab instance base URL. Defaults to https://gitlab.com.'],
-          ['NUXT_GITLAB_TOKEN', 'Personal, project, or deploy token with API access to the configured project.'],
+          ['NUXT_GITLAB_TOKEN', 'Personal, project, or deploy token with API access to the configured project. Encrypted at rest; shown masked in the UI.'],
           ['NUXT_GITLAB_PROJECT_ID', 'Numeric GitLab project ID that stores compose files.'],
           ['NUXT_GITLAB_BRANCH', 'Branch where compose files are committed. Defaults to main.'],
-          ['NUXT_GITLAB_STACKS_PATH', 'Repository folder for stack compose files. Defaults to stacks.']
+          ['NUXT_GITLAB_STACKS_PATH', 'Repository folder for stack compose files. Defaults to stacks.'],
+          ['Connection status', 'The status dot in Settings turns green only when DockHub actually reaches the project with the saved token, distinguishing unreachable from invalid token.']
         ],
         steps: [
           'Create or choose a GitLab project for operations state.',
           'Create a token with API access to the project.',
-          'Set the project ID, branch, and stacks path.',
+          'Set the URL, project ID, branch, and stacks path - via env vars or Settings > Integrations.',
+          'Reload Settings and confirm the status dot turns green.',
           'Deploy a stack and verify the compose file appears under the configured path.',
-          'Use stack history to view or roll back saved compose versions.'
+          'Use stack history to view or roll back saved compose versions. Remove stops a stack\'s services but keeps its GitLab definition; once it shows status Defined, use Delete from GitLab to remove the compose file and history too.'
         ],
         env: ['NUXT_GITLAB_URL', 'NUXT_GITLAB_TOKEN', 'NUXT_GITLAB_PROJECT_ID', 'NUXT_GITLAB_BRANCH', 'NUXT_GITLAB_STACKS_PATH']
+      },
+      {
+        id: 'alerts-config',
+        title: 'Alerts & notifications',
+        icon: 'i-lucide-bell',
+        summary: 'Notify Telegram, Microsoft Teams, or any generic webhook when something needs attention. Configure channels and per-rule thresholds from Settings > Alerts; channel credentials are encrypted at rest.',
+        options: [
+          ['Channels', 'Telegram (bot token + chat ID), Microsoft Teams (incoming webhook URL), or generic Webhook (URL + custom headers). Add as many as needed - every enabled channel receives every alert.'],
+          ['Deploy failed', 'Fires immediately when a stack deploy, rollback, redeploy, image update, or scale operation fails.'],
+          ['Service usage threshold', 'Fires when a service\'s CPU and/or memory usage crosses a configurable percentage of its limit, reservation, or node capacity. Default 90%.'],
+          ['Node down', 'Fires when a swarm node stops reporting heartbeats.'],
+          ['Replicas degraded', 'Fires when a service stays under its desired replica count past a configurable grace period.'],
+          ['Disk usage threshold', 'Fires when a node\'s disk usage crosses a configurable percentage. Default 85%.'],
+          ['NUXT_ALERTS_ENABLED', 'Default state of the background poller that checks usage/node/replica/disk conditions. Defaults to true.'],
+          ['NUXT_ALERTS_INTERVAL_MINUTES', 'How often that poller runs, in minutes. Defaults to 3.']
+        ],
+        steps: [
+          'Open Settings > Alerts and add a channel (Telegram, Teams, or Webhook).',
+          'Use the channel\'s Test action to confirm delivery before relying on it.',
+          'Enable or disable each rule and adjust its threshold where applicable.',
+          'Open Customize message on a rule to edit its template using the listed {{placeholder}} fields, or Reset to restore the default.',
+          'Trigger a real deploy failure or threshold breach once to confirm end-to-end delivery.'
+        ],
+        env: ['NUXT_ALERTS_ENABLED', 'NUXT_ALERTS_INTERVAL_MINUTES']
+      },
+      {
+        id: 'alerts-telegram',
+        title: 'Notifications: Telegram',
+        icon: 'i-lucide-send',
+        summary: 'Send alerts to a Telegram chat or channel through a bot you create with @BotFather. DockHub posts each alert as a plain text message via the Bot API - no webhook setup needed on Telegram\'s side.',
+        options: [
+          ['Bot token', 'Issued by @BotFather when you create the bot. Looks like 123456789:ABCdefGhIJKlmNoPQRstuVwXyz. Encrypted at rest; shown masked in Settings.'],
+          ['Chat ID', 'Numeric ID of the user, group, or channel the bot should message. Negative for groups/channels (for example -1001234567890), positive for a direct user chat.'],
+          ['Scope', 'One bot token can message many chats - add one DockHub channel per chat ID you want to notify.']
+        ],
+        steps: [
+          'Open a chat with @BotFather in Telegram and send /newbot.',
+          'Choose a display name and a username ending in "bot", then copy the bot token BotFather replies with.',
+          'Add the bot to the target group or channel (or just open a direct chat with it), and send any message so the bot can see that chat.',
+          'Visit https://api.telegram.org/bot<token>/getUpdates in a browser (with your token in place of <token>) and read the chat.id value from the JSON response - that is the chat ID.',
+          'In DockHub, go to Settings > Alerts > Add channel, choose Telegram, paste the bot token and chat ID, then save.',
+          'Use the channel\'s Test action and confirm the message arrives in the chat before relying on it.'
+        ],
+        env: []
+      },
+      {
+        id: 'alerts-teams',
+        title: 'Notifications: Microsoft Teams',
+        icon: 'i-lucide-users',
+        summary: 'Send alerts to a Teams channel using a classic Incoming Webhook connector. DockHub posts each alert as a MessageCard for broad compatibility across Teams tenants.',
+        options: [
+          ['Webhook URL', 'The unique URL Teams generates for the Incoming Webhook connector on one specific channel. Encrypted at rest; shown masked in Settings.'],
+          ['Scope', 'A webhook URL is tied to one channel - add a separate DockHub channel per Teams channel you want to notify.'],
+          ['Card format', 'Alerts are posted as a classic MessageCard. If your tenant has disabled classic connectors, use a Workflow-based webhook URL instead - the URL works the same way once issued.']
+        ],
+        steps: [
+          'In Teams, open the target channel, click the "..." menu, and choose Connectors (or Workflows on tenants where classic connectors are retired).',
+          'Add/configure "Incoming Webhook", give it a name such as DockHub Alerts, and optionally upload an icon.',
+          'Copy the generated webhook URL - Teams only displays it once, so save it somewhere safe immediately.',
+          'In DockHub, go to Settings > Alerts > Add channel, choose Microsoft Teams, paste the webhook URL, then save.',
+          'Use the channel\'s Test action and confirm a card posts to the channel before relying on it.'
+        ],
+        env: []
+      },
+      {
+        id: 'alerts-webhook',
+        title: 'Notifications: Generic webhook',
+        icon: 'i-lucide-webhook',
+        summary: 'Send alerts as a JSON POST to any URL you control - useful for Slack incoming webhooks, custom automation, or a chat tool not natively supported.',
+        options: [
+          ['URL', 'Endpoint DockHub sends the POST request to. Encrypted at rest; shown masked in Settings.'],
+          ['Headers', 'Optional, one per line written as "Key: Value" - use this for an Authorization header or any other header your endpoint requires.'],
+          ['Payload', 'DockHub POSTs JSON shaped { "text": "<rendered alert message>" }. Most chat-style webhooks, including Slack\'s, read a top-level text field.']
+        ],
+        steps: [
+          'Stand up or choose an endpoint that accepts a POST with a JSON body and returns a 2xx status.',
+          'If the endpoint needs authentication, note the exact header name and value it expects, for example Authorization: Bearer <token>.',
+          'In DockHub, go to Settings > Alerts > Add channel, choose Webhook, enter the URL, and add any headers one per line as Key: Value.',
+          'Use the channel\'s Test action and confirm your endpoint receives the request and returns success.',
+          'For Slack, paste its "Incoming Webhook" app URL directly into the URL field - no extra headers are needed.'
+        ],
+        env: []
       }
     ]
   },
@@ -396,12 +503,14 @@ const troubleshooting = [
                     </li>
                   </ol>
 
-                  <p class="mb-2 mt-5 text-xs font-semibold uppercase tracking-widest text-faint">Related env vars</p>
-                  <div class="flex flex-wrap gap-2">
-                    <code v-for="key in guide.env" :key="key" class="rounded-md bg-surface-2 px-2 py-1 font-mono text-xs text-beacon ring-1 ring-hull">
-                      {{ key }}
-                    </code>
-                  </div>
+                  <template v-if="guide.env?.length">
+                    <p class="mb-2 mt-5 text-xs font-semibold uppercase tracking-widest text-faint">Related env vars</p>
+                    <div class="flex flex-wrap gap-2">
+                      <code v-for="key in guide.env" :key="key" class="rounded-md bg-surface-2 px-2 py-1 font-mono text-xs text-beacon ring-1 ring-hull">
+                        {{ key }}
+                      </code>
+                    </div>
+                  </template>
                 </div>
               </div>
             </article>

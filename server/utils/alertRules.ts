@@ -1,0 +1,115 @@
+import { getAppSetting, setAppSetting } from './store'
+
+/**
+ * Alert rule configuration - what fires, with what thresholds, and the
+ * message template used. Defaults live in code (DEFAULT_RULES); admins can
+ * override per-type from the UI. Unlike authSettings.ts (one app_settings
+ * row per provider), all 5 rule types share ONE row ('alerts.rules') since
+ * there's a small, fixed set of them - reset of a single type is therefore
+ * a read-modify-write (delete just that type's key) rather than a
+ * deleteAppSetting call, since that would wipe the other rules' overrides.
+ */
+
+export type AlertRuleType = 'deploy_failed' | 'usage_threshold' | 'node_down' | 'replicas_degraded' | 'disk_usage_threshold'
+
+export interface AlertRuleDef {
+  type: AlertRuleType
+  enabled: boolean
+  config: Record<string, any>
+  template: string
+  placeholders: string[]
+}
+
+const RULES_KEY = 'alerts.rules'
+
+export const DEFAULT_RULES: Record<AlertRuleType, AlertRuleDef> = {
+  deploy_failed: {
+    type: 'deploy_failed',
+    enabled: true,
+    config: {},
+    template: 'Deploy failed for {{target}}: {{error}}',
+    placeholders: ['target', 'error', 'actor', 'time']
+  },
+  usage_threshold: {
+    type: 'usage_threshold',
+    enabled: true,
+    config: { cpuPercent: 90, memoryPercent: 90, cpuEnabled: true, memoryEnabled: true },
+    template: '{{target}} usage threshold exceeded: CPU {{cpuPercent}}% (limit {{cpuThreshold}}%), Memory {{memoryPercent}}% (limit {{memoryThreshold}}%)',
+    placeholders: ['target', 'cpuPercent', 'memoryPercent', 'cpuThreshold', 'memoryThreshold', 'time']
+  },
+  node_down: {
+    type: 'node_down',
+    enabled: true,
+    config: {},
+    template: 'Node {{target}} stopped reporting (last seen {{lastSeen}})',
+    placeholders: ['target', 'lastSeen', 'time']
+  },
+  replicas_degraded: {
+    type: 'replicas_degraded',
+    enabled: true,
+    config: { gracePeriodMinutes: 2 },
+    template: 'Service {{target}} degraded: {{running}}/{{desired}} replicas running for over {{gracePeriodMinutes}} minutes',
+    placeholders: ['target', 'running', 'desired', 'gracePeriodMinutes', 'time']
+  },
+  disk_usage_threshold: {
+    type: 'disk_usage_threshold',
+    enabled: true,
+    config: { percent: 85 },
+    template: 'Node {{target}} disk usage at {{percent}}% (threshold {{threshold}}%)',
+    placeholders: ['target', 'percent', 'threshold', 'time']
+  }
+}
+
+/** Replaces {{key}} tokens; unmatched placeholders are left as-is. */
+export function renderTemplate(template: string, vars: Record<string, string>): string {
+  return template.replace(/\{\{(\w+)\}\}/g, (match, key) => vars[key] ?? match)
+}
+
+type RuleOverride = Partial<Pick<AlertRuleDef, 'enabled' | 'config' | 'template'>>
+
+async function readRuleOverrides(): Promise<Partial<Record<AlertRuleType, RuleOverride>>> {
+  const raw = await getAppSetting(RULES_KEY)
+  if (!raw) return {}
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return {}
+  }
+}
+
+export async function getAlertRule(type: AlertRuleType): Promise<AlertRuleDef> {
+  const overrides = await readRuleOverrides()
+  const base = DEFAULT_RULES[type]
+  const override = overrides[type]
+  if (!override) return base
+  return {
+    ...base,
+    ...override,
+    config: { ...base.config, ...(override.config || {}) }
+  }
+}
+
+export async function getAllAlertRules(): Promise<AlertRuleDef[]> {
+  return Promise.all((Object.keys(DEFAULT_RULES) as AlertRuleType[]).map(getAlertRule))
+}
+
+export async function saveAlertRule(type: AlertRuleType, patch: RuleOverride, actor: string): Promise<AlertRuleDef> {
+  const overrides = await readRuleOverrides()
+  const current = await getAlertRule(type)
+  const nextOverride: RuleOverride = {
+    enabled: patch.enabled ?? current.enabled,
+    config: { ...current.config, ...(patch.config || {}) },
+    template: patch.template ?? current.template
+  }
+  overrides[type] = nextOverride
+  await setAppSetting(RULES_KEY, JSON.stringify(overrides), actor)
+  return { ...DEFAULT_RULES[type], ...nextOverride }
+}
+
+/** Reverts one rule type to its default - leaves the other 4 rules' overrides untouched. */
+export async function resetAlertRule(type: AlertRuleType, actor: string): Promise<AlertRuleDef> {
+  const overrides = await readRuleOverrides()
+  delete overrides[type]
+  await setAppSetting(RULES_KEY, JSON.stringify(overrides), actor)
+  return DEFAULT_RULES[type]
+}

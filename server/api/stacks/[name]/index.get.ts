@@ -89,7 +89,7 @@ export default defineEventHandler(async (event) => {
   let compose: string | null = null
   let composeSource: 'gitlab' | 'engine' | null = null
   let history: any[] = []
-  if (gitlabEnabled()) {
+  if (await gitlabEnabled()) {
     compose = await getStackFile(name).catch(() => null)
     history = await stackHistory(name).catch(() => [])
     if (compose) composeSource = 'gitlab'

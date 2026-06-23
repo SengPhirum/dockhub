@@ -17,6 +17,10 @@ export interface AppearanceSettings {
   logoHorizontalUrl: string
   /** Empty string means "use the built-in DockHub icon". */
   logoIconUrl: string
+  /** Empty string means "use the built-in DockHub favicon". Browser tab icon. */
+  faviconUrl: string
+  /** Empty string means "use the built-in DockHub app icon". Drives the PWA manifest icons and the Apple touch icon. */
+  pwaIconUrl: string
 }
 
 const KEY = 'appearance'
@@ -28,7 +32,9 @@ function envDefaults(): AppearanceSettings {
     appName: useRuntimeConfig().public.appName || 'DockHub',
     primaryColor: DEFAULT_PRIMARY_COLOR,
     logoHorizontalUrl: '',
-    logoIconUrl: ''
+    logoIconUrl: '',
+    faviconUrl: '',
+    pwaIconUrl: ''
   }
 }
 

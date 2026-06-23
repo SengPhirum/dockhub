@@ -3,6 +3,8 @@ export interface AppearanceSettings {
   primaryColor: string
   logoHorizontalUrl: string
   logoIconUrl: string
+  faviconUrl: string
+  pwaIconUrl: string
 }
 
 const DEFAULT_PRIMARY_COLOR = '#2496ED'
@@ -12,7 +14,9 @@ function defaults(): AppearanceSettings {
     appName: useRuntimeConfig().public.appName || 'DockHub',
     primaryColor: DEFAULT_PRIMARY_COLOR,
     logoHorizontalUrl: '',
-    logoIconUrl: ''
+    logoIconUrl: '',
+    faviconUrl: '',
+    pwaIconUrl: ''
   }
 }
 
@@ -46,7 +50,14 @@ export function useAppearance() {
 
   async function saveAppearance(patch: Partial<AppearanceSettings>) {
     const data = await $fetch<AppearanceSettings & { overridden: boolean }>('/api/settings/appearance', { method: 'PUT', body: patch })
-    appearance.value = { appName: data.appName, primaryColor: data.primaryColor, logoHorizontalUrl: data.logoHorizontalUrl, logoIconUrl: data.logoIconUrl }
+    appearance.value = {
+      appName: data.appName,
+      primaryColor: data.primaryColor,
+      logoHorizontalUrl: data.logoHorizontalUrl,
+      logoIconUrl: data.logoIconUrl,
+      faviconUrl: data.faviconUrl,
+      pwaIconUrl: data.pwaIconUrl
+    }
     overridden.value = true
     return data
   }

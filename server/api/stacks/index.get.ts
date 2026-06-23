@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   await requireUser(event)
   const running = await listStacks()
   const map = new Map(running.map((s) => [s.name, { ...s, inGit: false }]))
-  if (gitlabEnabled()) {
+  if (await gitlabEnabled()) {
     try {
       const files = await listStackFiles()
       for (const f of files) {

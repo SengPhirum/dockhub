@@ -2,6 +2,7 @@ import { requireRole } from '~~/server/utils/auth'
 import { deployStack } from '~~/server/utils/stack'
 import { gitlabEnabled, commitStackFile } from '~~/server/utils/gitlab'
 import { audit } from '~~/server/utils/store'
+import { fireAlert } from '~~/server/utils/alertNotify'
 export default defineEventHandler(async (event) => {
   const user = await requireRole(event, 'operator')
   const body = await readBody<{ name: string; compose: string; message?: string; commit?: boolean }>(event)
@@ -14,7 +15,7 @@ export default defineEventHandler(async (event) => {
 
   // Commit to GitLab first so the desired state is recorded even if deploy fails.
   let commit: any = null
-  if (body.commit !== false && gitlabEnabled()) {
+  if (body.commit !== false && (await gitlabEnabled())) {
     commit = await commitStackFile({
       stackName: body.name,
       content: body.compose,
@@ -24,7 +25,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const result = await deployStack(body.name, body.compose)
+  const result = await deployStack(body.name, body.compose).catch(async (err: any) => {
+    await fireAlert({ ruleType: 'deploy_failed', target: body.name, severity: 'critical', vars: { target: body.name, error: err?.statusMessage || err?.message || 'Unknown error', actor: user.username, time: new Date().toISOString() } })
+    throw err
+  })
   await audit({ actor: user.username, action: 'stack.deploy', target: body.name, detail: `${result.created.length} created, ${result.updated.length} updated` })
   return { ...result, commit }
 })

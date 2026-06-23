@@ -137,10 +137,15 @@ export default defineNuxtConfig({
       timeoutMs: Number(process.env.NUXT_AUTOREDEPLOY_TIMEOUT_MS || 10000)
     },
 
+    // Background poller for usage/node/replica/disk threshold alerts.
+    alerts: {
+      enabled: process.env.NUXT_ALERTS_ENABLED !== 'false',
+      intervalMinutes: Number(process.env.NUXT_ALERTS_INTERVAL_MINUTES || 3)
+    },
+
     // --- Exposed to the client (safe values only) ---
     public: {
       appName: process.env.NUXT_PUBLIC_APP_NAME || 'DockHub',
-      gitlabEnabled: !!process.env.NUXT_GITLAB_TOKEN,
       staticDocs: isDocsBuild
     }
   },
@@ -189,13 +194,12 @@ export default defineNuxtConfig({
         { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
         { name: 'msapplication-config', content: '/browserconfig.xml' },
         { name: 'msapplication-TileColor', content: '#0066ff' }
-      ],
-      link: [
-        { rel: 'icon', href: '/favicon.ico', sizes: 'any' },
-        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
-        { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
-        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' }
       ]
+      // favicon/apple-touch-icon/manifest <link> tags are NOT set here - they're
+      // injected per-request by app.vue (default static paths, or an admin's
+      // Settings > Appearance override). unhead doesn't dedupe multiple
+      // rel="icon" links against each other (multiple sizes is normal), so
+      // defining them here too would render both sets at once.
     }
   },
 
@@ -222,29 +226,10 @@ export default defineNuxtConfig({
       'apple-touch-icon.png',
       'browserconfig.xml'
     ],
-    manifest: {
-      name: 'DockHub',
-      short_name: 'DockHub',
-      description: 'DockHub - Docker Swarm and container management dashboard.',
-      start_url: '/',
-      scope: '/',
-      display: 'standalone',
-      orientation: 'portrait-primary',
-      background_color: '#ffffff',
-      theme_color: '#0066ff',
-      categories: ['developer', 'productivity', 'utilities'],
-      icons: [
-        { src: '/icons/icon-72x72.png', sizes: '72x72', type: 'image/png', purpose: 'any' },
-        { src: '/icons/icon-96x96.png', sizes: '96x96', type: 'image/png', purpose: 'any' },
-        { src: '/icons/icon-128x128.png', sizes: '128x128', type: 'image/png', purpose: 'any' },
-        { src: '/icons/icon-144x144.png', sizes: '144x144', type: 'image/png', purpose: 'any' },
-        { src: '/icons/icon-152x152.png', sizes: '152x152', type: 'image/png', purpose: 'any' },
-        { src: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-        { src: '/icons/icon-384x384.png', sizes: '384x384', type: 'image/png', purpose: 'any' },
-        { src: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-        { src: '/icons/maskable-icon-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-        { src: '/icons/maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
-      ]
-    }
+    // Manifest is served dynamically by server/routes/manifest.webmanifest.get.ts
+    // instead of generated here at build time, so an admin-uploaded PWA icon
+    // (Settings -> Appearance) takes effect without a rebuild. That route
+    // mirrors these exact defaults when no override is set.
+    manifest: false
   }
 })

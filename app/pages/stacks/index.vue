@@ -64,6 +64,17 @@ networks:
 `
 function openDeploy() { form.name = ''; form.compose = SAMPLE; form.message = ''; open.value = true }
 
+async function deleteFromGitlab(s: any) {
+  if (!confirm(`Permanently delete "${s.name}" from GitLab?\n\nThis removes its compose file and commit history from version control. It is not currently deployed, so nothing will be stopped - but this cannot be undone and the stack will disappear from this list.`)) return
+  try {
+    await $fetch(`/api/stacks/${s.name}?git=true`, { method: 'DELETE' })
+    toast.add({ title: `Deleted ${s.name} from GitLab`, color: 'primary' })
+    refresh()
+  } catch (e: any) {
+    toast.add({ title: 'Delete failed', description: e?.data?.statusMessage || e?.message, color: 'error' })
+  }
+}
+
 async function deploy() {
   if (!form.name || !form.compose) { toast.add({ title: 'Name and compose are required', color: 'warning' }); return }
   deploying.value = true
@@ -123,11 +134,12 @@ async function deploy() {
                 <th class="px-4 py-3 font-medium">Secrets</th>
                 <th class="px-4 py-3 font-medium">Updated</th>
                 <th class="px-4 py-3 font-medium">Status</th>
+                <th class="px-4 py-3 font-medium" />
               </tr>
             </thead>
             <tbody class="divide-y divide-hull">
               <tr v-if="!filtered.length">
-                <td colspan="8" class="px-4 py-8 text-center text-(--color-muted)">No stacks deployed yet.</td>
+                <td colspan="9" class="px-4 py-8 text-center text-(--color-muted)">No stacks deployed yet.</td>
               </tr>
               <tr
                 v-for="s in filtered"
@@ -157,6 +169,17 @@ async function deploy() {
                 <td class="px-4 py-3 font-mono text-(--color-muted)">{{ s.secrets }}</td>
                 <td class="px-4 py-3 text-xs text-faint">{{ s.updatedAt ? relative(s.updatedAt) : '—' }}</td>
                 <td class="px-4 py-3"><StatusBadge :state="stackStatus(s)" /></td>
+                <td class="px-4 py-3 text-right">
+                  <UButton
+                    v-if="can('operator') && stackStatus(s) === 'defined' && s.inGit"
+                    icon="i-lucide-trash-2"
+                    color="error"
+                    variant="ghost"
+                    size="sm"
+                    title="Delete from GitLab"
+                    @click.stop="deleteFromGitlab(s)"
+                  />
+                </td>
               </tr>
             </tbody>
           </table>

@@ -1,4 +1,5 @@
 import { getAppSetting, setAppSetting, deleteAppSetting } from './store'
+import { encryptSecret, decryptSecret } from './secretCrypto'
 
 /**
  * Authentication provider settings.
@@ -75,11 +76,24 @@ function envOidc(): OidcSettings {
   }
 }
 
+// Which field holds the secret for each provider - decrypted on read (only
+// the DB override, never the env-sourced plaintext defaults) and encrypted
+// on write, right at the storage boundary.
+const SECRET_FIELD: Record<AuthProvider, 'bindCredentials' | 'clientSecret'> = {
+  ldap: 'bindCredentials',
+  oidc: 'clientSecret'
+}
+
 async function readOverrides<T>(provider: AuthProvider): Promise<Partial<T> | null> {
   const raw = await getAppSetting(KEYS[provider])
   if (!raw) return null
   try {
-    return JSON.parse(raw) as Partial<T>
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    const secretField = SECRET_FIELD[provider]
+    if (typeof parsed[secretField] === 'string') {
+      parsed[secretField] = decryptSecret(parsed[secretField] as string)
+    }
+    return parsed as Partial<T>
   } catch {
     return null
   }
@@ -102,7 +116,8 @@ export async function saveLdapSettings(patch: Partial<LdapSettings>, actor: stri
   const current = await getLdapSettings()
   const next = { ...current, ...patch }
   if (!patch.bindCredentials) next.bindCredentials = current.bindCredentials
-  await setAppSetting(KEYS.ldap, JSON.stringify(next), actor)
+  const stored = { ...next, bindCredentials: next.bindCredentials ? encryptSecret(next.bindCredentials) : '' }
+  await setAppSetting(KEYS.ldap, JSON.stringify(stored), actor)
   return next
 }
 
@@ -110,7 +125,8 @@ export async function saveOidcSettings(patch: Partial<OidcSettings>, actor: stri
   const current = await getOidcSettings()
   const next = { ...current, ...patch }
   if (!patch.clientSecret) next.clientSecret = current.clientSecret
-  await setAppSetting(KEYS.oidc, JSON.stringify(next), actor)
+  const stored = { ...next, clientSecret: next.clientSecret ? encryptSecret(next.clientSecret) : '' }
+  await setAppSetting(KEYS.oidc, JSON.stringify(stored), actor)
   return next
 }
 

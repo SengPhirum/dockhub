@@ -9,10 +9,10 @@ const docs = [
   },
   {
     title: 'Configuration',
-    subtitle: 'System options, integrations, authentication, and provider setup.',
+    subtitle: 'System options, integrations, authentication, alerts, and provider setup.',
     to: '/docs/configuration',
     icon: 'i-lucide-sliders-horizontal',
-    actions: ['Docker', 'GitLab', 'OIDC', 'Keycloak', 'Authentik', 'LDAP']
+    actions: ['Docker', 'GitLab', 'Alerts', 'OIDC', 'Keycloak', 'Authentik', 'LDAP']
   }
 ]
 </script>

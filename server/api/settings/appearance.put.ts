@@ -3,7 +3,7 @@ import { saveAppearanceSettings } from '~~/server/utils/appearanceSettings'
 import type { AppearanceSettings } from '~~/server/utils/appearanceSettings'
 import { audit } from '~~/server/utils/store'
 
-const FIELDS: (keyof AppearanceSettings)[] = ['appName', 'primaryColor', 'logoHorizontalUrl', 'logoIconUrl']
+const FIELDS: (keyof AppearanceSettings)[] = ['appName', 'primaryColor', 'logoHorizontalUrl', 'logoIconUrl', 'faviconUrl', 'pwaIconUrl']
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/
 // data: URLs (uploaded logos) or plain http(s) URLs only - logos are stored
 // inline as base64 in the JSON blob, so cap well under the column's
@@ -41,6 +41,12 @@ export default defineEventHandler(async (event) => {
   }
   if (patch.logoIconUrl !== undefined && !isValidLogoValue(patch.logoIconUrl)) {
     throw createError({ statusCode: 400, statusMessage: 'Icon logo must be an http(s) URL or an uploaded image' })
+  }
+  if (patch.faviconUrl !== undefined && !isValidLogoValue(patch.faviconUrl)) {
+    throw createError({ statusCode: 400, statusMessage: 'Favicon must be an http(s) URL or an uploaded image' })
+  }
+  if (patch.pwaIconUrl !== undefined && !isValidLogoValue(patch.pwaIconUrl)) {
+    throw createError({ statusCode: 400, statusMessage: 'PWA icon must be an http(s) URL or an uploaded image' })
   }
 
   const next = await saveAppearanceSettings(patch, user.username)

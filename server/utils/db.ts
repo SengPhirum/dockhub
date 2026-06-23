@@ -130,5 +130,26 @@ async function runMigrations(): Promise<void> {
     );
 
     CREATE UNIQUE INDEX IF NOT EXISTS idx_api_tokens_hash ON api_tokens (token_hash);
+
+    CREATE TABLE IF NOT EXISTS alert_channels (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL,
+      enabled BOOLEAN NOT NULL DEFAULT TRUE,
+      config TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS alert_events (
+      id TEXT PRIMARY KEY,
+      rule_type TEXT NOT NULL,
+      target TEXT,
+      severity TEXT NOT NULL,
+      message TEXT NOT NULL,
+      fired_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_alert_events_fired_at ON alert_events (fired_at DESC);
   `)
 }

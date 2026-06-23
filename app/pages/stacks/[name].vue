@@ -234,6 +234,16 @@ async function remove() {
     toast.add({ title: 'Remove failed', description: e?.data?.statusMessage || e?.message, color: 'error' })
   }
 }
+async function deleteFromGitlab() {
+  if (!confirm(`Permanently delete "${name}" from GitLab?\n\nThis removes its compose file and commit history from version control. It is not currently deployed, so nothing will be stopped - but this cannot be undone and the stack will no longer appear in DockHub.`)) return
+  try {
+    await $fetch(`/api/stacks/${name}?git=true`, { method: 'DELETE' })
+    toast.add({ title: `Deleted ${name} from GitLab`, color: 'primary' })
+    navigateTo('/stacks')
+  } catch (e: any) {
+    toast.add({ title: 'Delete failed', description: e?.data?.statusMessage || e?.message, color: 'error' })
+  }
+}
 </script>
 
 <template>
@@ -247,7 +257,8 @@ async function remove() {
         <UButton icon="i-lucide-arrow-left" color="neutral" variant="ghost" to="/stacks" label="Back" />
         <UButton icon="i-lucide-refresh-cw" color="neutral" variant="soft" :loading="refreshing" @click="refresh()" />
         <UButton v-if="can('operator')" icon="i-lucide-pencil" color="primary" label="Edit" :disabled="!data?.compose" @click="openEdit" />
-        <UButton v-if="can('operator')" icon="i-lucide-trash-2" color="error" variant="soft" label="Remove" @click="remove" />
+        <UButton v-if="can('operator') && summary.status === 'defined'" icon="i-lucide-trash-2" color="error" variant="soft" label="Delete from GitLab" @click="deleteFromGitlab" />
+        <UButton v-else-if="can('operator')" icon="i-lucide-trash-2" color="error" variant="soft" label="Remove" @click="remove" />
       </template>
     </PageHeader>
 

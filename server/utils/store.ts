@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs'
 import { nanoid } from 'nanoid'
 import { createHash, randomBytes } from 'node:crypto'
 import { migrate } from './db'
+import { encryptSecret, decryptSecret } from './secretCrypto'
 
 export type Role = 'admin' | 'operator' | 'viewer'
 export type UserSource = 'local' | 'ldap' | 'oidc'
@@ -333,7 +334,7 @@ export async function listRegistries(): Promise<Registry[]> {
     name: r.name,
     url: r.url,
     username: r.username,
-    auth: r.auth ?? undefined
+    auth: r.auth ? decryptSecret(r.auth) : undefined
   }))
 }
 
@@ -342,7 +343,7 @@ export async function addRegistry(input: Omit<Registry, 'id'>): Promise<Registry
   const id = nanoid()
   await db.query(
     'INSERT INTO registries (id, name, url, username, auth) VALUES ($1, $2, $3, $4, $5)',
-    [id, input.name, input.url, input.username, input.auth ?? null]
+    [id, input.name, input.url, input.username, input.auth ? encryptSecret(input.auth) : null]
   )
   return { id, ...input }
 }
