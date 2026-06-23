@@ -1,6 +1,6 @@
 # DockHub v0.1.8
 
-Date: 2026-06-22 UTC
+Date: 2026-06-23 UTC
 
 ## Docker Images
 
@@ -11,11 +11,13 @@ Date: 2026-06-22 UTC
 
 ## Source
 
-- Commit: `0cb4a52`
+- Commit: `e8a09df`
 - Previous tag: none
 
 ## Changes
 
+- Enhance dashboard and dev swarm (e8a09df)
+- Add full service editing, autoredeploy, appearance settings, and fix PWA (392598f)
 - Enhance UI (0cb4a52)
 - Update enhance all view (f89e508)
 - Enhance Stack and Service view (14e562d)
@@ -41,56 +43,47 @@ Date: 2026-06-22 UTC
 The working tree had uncommitted changes before this release script ran.
 
 ```text
+ M .env.example
+ M README.md
  M RELEASE_NOTES.md
  M app/app.vue
- M app/components/DockHubLogo.vue
- M app/components/ListControls.vue
- M app/components/PageHeader.vue
- M app/composables/useFormat.ts
- M app/composables/useListControls.ts
- M app/layouts/default.vue
- M app/pages/audit/index.vue
- M app/pages/configs/index.vue
- M app/pages/containers/index.vue
- M app/pages/login.vue
- M app/pages/networks/index.vue
- M app/pages/nodes/index.vue
- M app/pages/registries/index.vue
- M app/pages/secrets/index.vue
+ M app/composables/useAppearance.ts
+ M app/pages/docs/configuration.vue
+ M app/pages/docs/index.vue
+ M app/pages/docs/manual.vue
+ M app/pages/documentation.vue
  M app/pages/services/[id].vue
  M app/pages/services/index.vue
  M app/pages/settings/index.vue
+ M app/pages/stacks/[name].vue
  M app/pages/stacks/index.vue
- M app/pages/tasks/index.vue
- M app/pages/users/index.vue
- M app/pages/volumes/index.vue
  M nuxt.config.ts
  M release-notes/v0.1.8.md
+ M server/api/gitlab/status.get.ts
  M server/api/services/[id].get.ts
  M server/api/services/[id]/image.post.ts
  M server/api/services/[id]/redeploy.post.ts
  M server/api/services/[id]/scale.post.ts
+ M server/api/services/usage.get.ts
+ M server/api/settings/appearance.put.ts
+ M server/api/stacks/[name]/index.delete.ts
+ M server/api/stacks/[name]/index.get.ts
+ M server/api/stacks/[name]/rollback.post.ts
  M server/api/stacks/index.get.ts
- M server/api/tasks/index.get.ts
- M server/utils/openapi.ts
- M server/utils/stack.ts
-?? app/components/services/
-?? app/composables/useAppearance.ts
-?? app/utils/
-?? server/api/services/[id]/command.post.ts
-?? server/api/services/[id]/configs.post.ts
-?? server/api/services/[id]/deployment.post.ts
-?? server/api/services/[id]/environment.post.ts
-?? server/api/services/[id]/extra-hosts.post.ts
-?? server/api/services/[id]/log-driver.post.ts
-?? server/api/services/[id]/mounts.post.ts
-?? server/api/services/[id]/networks.post.ts
-?? server/api/services/[id]/ports.post.ts
-?? server/api/services/[id]/resources.post.ts
-?? server/api/services/[id]/secrets.post.ts
-?? server/api/settings/
-?? server/plugins/autoredeploy.ts
-?? server/utils/appearanceSettings.ts
-?? server/utils/registryClient.ts
-?? server/utils/serviceMutation.ts
+ M server/api/stacks/index.post.ts
+ M server/utils/appearanceSettings.ts
+ M server/utils/authSettings.ts
+ M server/utils/db.ts
+ M server/utils/gitlab.ts
+ M server/utils/store.ts
+?? server/api/alerts/
+?? server/api/gitlab/settings.delete.ts
+?? server/api/gitlab/settings.put.ts
+?? server/plugins/alerts.ts
+?? server/routes/
+?? server/utils/alertChannels.ts
+?? server/utils/alertNotify.ts
+?? server/utils/alertRules.ts
+?? server/utils/gitlabSettings.ts
+?? server/utils/secretCrypto.ts
 ```
