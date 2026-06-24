@@ -9,7 +9,7 @@ const LDAP_FIELDS: (keyof LdapSettings)[] = [
 ]
 const OIDC_FIELDS: (keyof OidcSettings)[] = [
   'enabled', 'issuer', 'clientId', 'clientSecret', 'redirectUri', 'scope',
-  'usernameClaim', 'displayNameClaim', 'groupsClaim', 'adminGroup', 'operatorGroup', 'providerName'
+  'usernameClaim', 'displayNameClaim', 'groupsClaim', 'rolesClaim', 'adminGroup', 'operatorGroup', 'providerName'
 ]
 
 // Only known fields are accepted; booleans stay booleans, everything else is a string.

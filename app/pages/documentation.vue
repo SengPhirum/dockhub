@@ -126,11 +126,11 @@ const featureGuides = [
     id: 'stacks',
     title: 'Stacks',
     icon: 'i-lucide-layers',
-    summary: 'Deploy compose files into Docker Swarm and keep desired state visible in DockHub.',
+    summary: 'Deploy compose files into Docker Swarm and keep desired state visible in KNetraHub.',
     steps: [
       'Open Stacks, add or edit a compose file, then deploy it.',
-      'Use service names, images, ports, networks, volumes, secrets, and configs supported by DockHub.',
-      'When GitLab is configured, review commit history and roll back to a previous compose version; each commit is attributed to the full name of the DockHub user who made the change.',
+      'Use service names, images, ports, networks, volumes, secrets, and configs supported by KNetraHub.',
+      'When GitLab is configured, review commit history and roll back to a previous compose version; each commit is attributed to the full name of the KNetraHub user who made the change.',
       'Watch service and task pages after deployment to verify replicas converge.',
       'Remove stops a stack\'s services but keeps its GitLab definition for history. Once a stack shows status Defined (in GitLab but not deployed), use Delete from GitLab to permanently remove the compose file too - this is irreversible and prompts for confirmation.'
     ],
@@ -267,7 +267,7 @@ const featureGuides = [
     summary: 'Configure appearance, integration defaults, authentication providers, alerts, and UI-backed system settings - all admin-only.',
     steps: [
       'Use Authentication settings to enable LDAP or OIDC from the UI.',
-      'Use Integrations to configure GitLab without touching container env; the status dot is only green when DockHub actually reaches it.',
+      'Use Integrations to configure GitLab without touching container env; the status dot is only green when KNetraHub actually reaches it.',
       'Use Alerts to add notification channels (Telegram/Teams/Webhook) and tune which conditions notify you, with custom message templates.',
       'Save provider settings to store database overrides instead of editing container env.',
       'Use env defaults when you want to delete a saved override and return to .env values.',
@@ -308,7 +308,7 @@ const workflows = [
     steps: [
       'Drain the worker or manager node from Nodes.',
       'Wait for tasks to move or stop according to service policy.',
-      'Complete host maintenance outside DockHub.',
+      'Complete host maintenance outside KNetraHub.',
       'Activate the node and confirm new tasks can be scheduled.'
     ]
   }
@@ -320,7 +320,7 @@ const configurationSections = [
     id: 'integration',
     eyebrow: 'Integration',
     title: 'System and integration configuration',
-    summary: 'These options connect DockHub to Docker, GitLab, persistent storage, and the visible app shell.',
+    summary: 'These options connect KNetraHub to Docker, GitLab, persistent storage, and the visible app shell.',
     guides: [
       {
         id: 'runtime-config',
@@ -349,10 +349,10 @@ const configurationSections = [
         icon: 'i-lucide-paintbrush',
         summary: 'Rebrand the running app without a rebuild: app name, brand color, logos, favicon, and PWA/app icon. Saved from Settings > Appearance as a database override - no env vars required.',
         options: [
-          ['App name', 'Shown in the sidebar header, browser tab title, and PWA manifest name. Defaults to NUXT_PUBLIC_APP_NAME or "DockHub".'],
+          ['App name', 'Shown in the sidebar header, browser tab title, and PWA manifest name. Defaults to NUXT_PUBLIC_APP_NAME or "KNetraHub".'],
           ['Primary color', 'Hex color driving buttons, links, and accents app-wide, plus the PWA theme color.'],
-          ['Horizontal logo', 'Wordmark shown on the login screen. Falls back to the built-in DockHub logo when unset.'],
-          ['Icon logo', 'Square icon shown in the sidebar and header. Falls back to the built-in DockHub icon when unset.'],
+          ['Horizontal logo', 'Wordmark shown on the login screen. Falls back to the built-in KNetraHub logo when unset.'],
+          ['Icon logo', 'Square icon shown in the sidebar and header. Falls back to the built-in KNetraHub icon when unset.'],
           ['Favicon', 'Browser tab icon. Falls back to the built-in favicon set when unset.'],
           ['PWA / app icon', 'Installed-app and home-screen icon - drives the web app manifest icons and the Apple touch icon. Falls back to the built-in icon set when unset.']
         ] as [string, string][],
@@ -369,7 +369,7 @@ const configurationSections = [
         id: 'docker-config',
         title: 'Docker engine',
         icon: 'i-lucide-container',
-        summary: 'DockHub must reach a Docker Swarm manager. Use the local socket for co-located installs or TCP/TLS for remote managers.',
+        summary: 'KNetraHub must reach a Docker Swarm manager. Use the local socket for co-located installs or TCP/TLS for remote managers.',
         options: [
           ['NUXT_DOCKER_SOCKET_PATH', 'Unix socket path for local Docker access. Default is /var/run/docker.sock.'],
           ['NUXT_DOCKER_HOST', 'Remote Docker manager hostname or IP. When set, TCP mode is used instead of the socket.'],
@@ -397,7 +397,7 @@ const configurationSections = [
           ['NUXT_GITLAB_PROJECT_ID', 'Numeric GitLab project ID that stores compose files.'],
           ['NUXT_GITLAB_BRANCH', 'Branch where compose files are committed. Defaults to main.'],
           ['NUXT_GITLAB_STACKS_PATH', 'Repository folder for stack compose files. Defaults to stacks.'],
-          ['Connection status', 'The status dot in Settings turns green only when DockHub actually reaches the project with the saved token, distinguishing unreachable from invalid token.']
+          ['Connection status', 'The status dot in Settings turns green only when KNetraHub actually reaches the project with the saved token, distinguishing unreachable from invalid token.']
         ] as [string, string][],
         steps: [
           'Create or choose a GitLab project for operations state.',
@@ -437,18 +437,18 @@ const configurationSections = [
         id: 'alerts-telegram',
         title: 'Notifications: Telegram',
         icon: 'i-lucide-send',
-        summary: 'Send alerts to a Telegram chat or channel through a bot you create with @BotFather. DockHub posts each alert as a plain text message via the Bot API - no webhook setup needed on Telegram\'s side.',
+        summary: 'Send alerts to a Telegram chat or channel through a bot you create with @BotFather. KNetraHub posts each alert as a plain text message via the Bot API - no webhook setup needed on Telegram\'s side.',
         options: [
           ['Bot token', 'Issued by @BotFather when you create the bot. Looks like 123456789:ABCdefGhIJKlmNoPQRstuVwXyz. Encrypted at rest; shown masked in Settings.'],
           ['Chat ID', 'Numeric ID of the user, group, or channel the bot should message. Negative for groups/channels (for example -1001234567890), positive for a direct user chat.'],
-          ['Scope', 'One bot token can message many chats - add one DockHub channel per chat ID you want to notify.']
+          ['Scope', 'One bot token can message many chats - add one KNetraHub channel per chat ID you want to notify.']
         ] as [string, string][],
         steps: [
           'Open a chat with @BotFather in Telegram and send /newbot.',
           'Choose a display name and a username ending in "bot", then copy the bot token BotFather replies with.',
           'Add the bot to the target group or channel (or just open a direct chat with it), and send any message so the bot can see that chat.',
           'Visit https://api.telegram.org/bot<token>/getUpdates in a browser (with your token in place of <token>) and read the chat.id value from the JSON response - that is the chat ID.',
-          'In DockHub, go to Settings > Alerts > Add channel, choose Telegram, paste the bot token and chat ID, then save.',
+          'In KNetraHub, go to Settings > Alerts > Add channel, choose Telegram, paste the bot token and chat ID, then save.',
           'Use the channel\'s Test action and confirm the message arrives in the chat before relying on it.'
         ],
         env: [] as string[]
@@ -457,17 +457,17 @@ const configurationSections = [
         id: 'alerts-teams',
         title: 'Notifications: Microsoft Teams',
         icon: 'i-lucide-users',
-        summary: 'Send alerts to a Teams channel using a classic Incoming Webhook connector. DockHub posts each alert as a MessageCard for broad compatibility across Teams tenants.',
+        summary: 'Send alerts to a Teams channel using a classic Incoming Webhook connector. KNetraHub posts each alert as a MessageCard for broad compatibility across Teams tenants.',
         options: [
           ['Webhook URL', 'The unique URL Teams generates for the Incoming Webhook connector on one specific channel. Encrypted at rest; shown masked in Settings.'],
-          ['Scope', 'A webhook URL is tied to one channel - add a separate DockHub channel per Teams channel you want to notify.'],
+          ['Scope', 'A webhook URL is tied to one channel - add a separate KNetraHub channel per Teams channel you want to notify.'],
           ['Card format', 'Alerts are posted as a classic MessageCard. If your tenant has disabled classic connectors, use a Workflow-based webhook URL instead - the URL works the same way once issued.']
         ] as [string, string][],
         steps: [
           'In Teams, open the target channel, click the "..." menu, and choose Connectors (or Workflows on tenants where classic connectors are retired).',
-          'Add/configure "Incoming Webhook", give it a name such as DockHub Alerts, and optionally upload an icon.',
+          'Add/configure "Incoming Webhook", give it a name such as KNetraHub Alerts, and optionally upload an icon.',
           'Copy the generated webhook URL - Teams only displays it once, so save it somewhere safe immediately.',
-          'In DockHub, go to Settings > Alerts > Add channel, choose Microsoft Teams, paste the webhook URL, then save.',
+          'In KNetraHub, go to Settings > Alerts > Add channel, choose Microsoft Teams, paste the webhook URL, then save.',
           'Use the channel\'s Test action and confirm a card posts to the channel before relying on it.'
         ],
         env: [] as string[]
@@ -478,14 +478,14 @@ const configurationSections = [
         icon: 'i-lucide-webhook',
         summary: 'Send alerts as a JSON POST to any URL you control - useful for Slack incoming webhooks, custom automation, or a chat tool not natively supported.',
         options: [
-          ['URL', 'Endpoint DockHub sends the POST request to. Encrypted at rest; shown masked in Settings.'],
+          ['URL', 'Endpoint KNetraHub sends the POST request to. Encrypted at rest; shown masked in Settings.'],
           ['Headers', 'Optional, one per line written as "Key: Value" - use this for an Authorization header or any other header your endpoint requires.'],
-          ['Payload', 'DockHub POSTs JSON shaped { "text": "<rendered alert message>" }. Most chat-style webhooks, including Slack\'s, read a top-level text field.']
+          ['Payload', 'KNetraHub POSTs JSON shaped { "text": "<rendered alert message>" }. Most chat-style webhooks, including Slack\'s, read a top-level text field.']
         ] as [string, string][],
         steps: [
           'Stand up or choose an endpoint that accepts a POST with a JSON body and returns a 2xx status.',
           'If the endpoint needs authentication, note the exact header name and value it expects, for example Authorization: Bearer <token>.',
-          'In DockHub, go to Settings > Alerts > Add channel, choose Webhook, enter the URL, and add any headers one per line as Key: Value.',
+          'In KNetraHub, go to Settings > Alerts > Add channel, choose Webhook, enter the URL, and add any headers one per line as Key: Value.',
           'Use the channel\'s Test action and confirm your endpoint receives the request and returns success.',
           'For Slack, paste its "Incoming Webhook" app URL directly into the URL field - no extra headers are needed.'
         ],
@@ -497,13 +497,13 @@ const configurationSections = [
     id: 'authentication',
     eyebrow: 'Authentication',
     title: 'Authentication and role mapping',
-    summary: 'DockHub supports local users, LDAP / Active Directory, and OIDC SSO. LDAP and OIDC can be configured from environment defaults or saved UI overrides.',
+    summary: 'KNetraHub supports local users, LDAP / Active Directory, and OIDC SSO. LDAP and OIDC can be configured from environment defaults or saved UI overrides.',
     guides: [
       {
         id: 'local-auth',
         title: 'Local accounts',
         icon: 'i-lucide-user-round-cog',
-        summary: 'Local users are stored in the DockHub database and are useful for first-run access, break-glass administration, and smaller teams.',
+        summary: 'Local users are stored in the KNetraHub database and are useful for first-run access, break-glass administration, and smaller teams.',
         options: [
           ['First-run admin', 'Created from NUXT_ADMIN_USERNAME and NUXT_ADMIN_PASSWORD only when no users exist.'],
           ['Roles', 'Viewer can read, operator can control workloads, admin can manage users/settings/integrations.'],
@@ -523,12 +523,12 @@ const configurationSections = [
         summary: 'OIDC uses authorization code flow with PKCE and discovers provider endpoints from the issuer URL.',
         options: [
           ['NUXT_OIDC_ENABLED', 'Turns OIDC login on by default. UI overrides can also enable or disable it.'],
-          ['NUXT_OIDC_ISSUER', 'Provider issuer URL. DockHub reads {issuer}/.well-known/openid-configuration.'],
+          ['NUXT_OIDC_ISSUER', 'Provider issuer URL. KNetraHub reads {issuer}/.well-known/openid-configuration.'],
           ['NUXT_OIDC_CLIENT_ID', 'Client ID registered at the provider.'],
           ['NUXT_OIDC_CLIENT_SECRET', 'Client secret for confidential clients.'],
           ['NUXT_OIDC_REDIRECT_URI', 'Optional callback override. Blank means {origin}/api/auth/oidc/callback.'],
           ['NUXT_OIDC_SCOPE', 'Requested scopes. Default is openid profile email groups.'],
-          ['NUXT_OIDC_USERNAME_CLAIM', 'Claim used as DockHub username. Default is preferred_username.'],
+          ['NUXT_OIDC_USERNAME_CLAIM', 'Claim used as KNetraHub username. Default is preferred_username.'],
           ['NUXT_OIDC_DISPLAY_NAME_CLAIM', 'Claim used as display name. Default is name.'],
           ['NUXT_OIDC_GROUPS_CLAIM', 'Claim that carries group names. Dot paths such as realm_access.roles are supported.'],
           ['NUXT_OIDC_ADMIN_GROUP', 'Group value mapped to the admin role.'],
@@ -537,7 +537,7 @@ const configurationSections = [
         ] as [string, string][],
         steps: [
           'Create an OIDC client in your identity provider.',
-          'Register the DockHub callback URL exactly.',
+          'Register the KNetraHub callback URL exactly.',
           'Copy issuer, client ID, and client secret into Settings > Authentication.',
           'Expose group membership in an ID token or userinfo claim.',
           'Map provider groups to admin and operator roles, then test with one user from each role.'
@@ -562,9 +562,9 @@ const configurationSections = [
           'Create an OpenID Connect client with Client ID dockhub.',
           'Enable client authentication so Keycloak issues a client secret.',
           'Keep standard authorization code flow enabled.',
-          'Add the exact DockHub callback URL as a valid redirect URI and the DockHub origin as a web origin.',
+          'Add the exact KNetraHub callback URL as a valid redirect URI and the KNetraHub origin as a web origin.',
           'Add a Group Membership mapper with token claim name groups.',
-          'Copy the realm issuer, client ID, and secret into DockHub.'
+          'Copy the realm issuer, client ID, and secret into KNetraHub.'
         ],
         env: ['NUXT_OIDC_ISSUER', 'NUXT_OIDC_CLIENT_ID', 'NUXT_OIDC_CLIENT_SECRET', 'NUXT_OIDC_GROUPS_CLAIM', 'NUXT_OIDC_ADMIN_GROUP', 'NUXT_OIDC_OPERATOR_GROUP']
       },
@@ -572,7 +572,7 @@ const configurationSections = [
         id: 'authentik',
         title: 'OIDC: Authentik',
         icon: 'i-lucide-fingerprint',
-        summary: 'Create an Authentik application with an OAuth2/OpenID provider, then use the provider issuer and client credentials in DockHub.',
+        summary: 'Create an Authentik application with an OAuth2/OpenID provider, then use the provider issuer and client credentials in KNetraHub.',
         options: [
           ['Issuer', 'Default per-provider issuer such as https://authentik.example.com/application/o/dockhub/.'],
           ['Client type', 'Confidential client with a client ID and client secret.'],
@@ -582,11 +582,11 @@ const configurationSections = [
           ['Provider name', 'Authentik or your organization SSO label.']
         ] as [string, string][],
         steps: [
-          'Create a new Application in Authentik, for example DockHub.',
+          'Create a new Application in Authentik, for example KNetraHub.',
           'Create or attach an OAuth2/OpenID provider.',
-          'Set the redirect URI to the exact DockHub callback URL.',
+          'Set the redirect URI to the exact KNetraHub callback URL.',
           'Use the default per-provider issuer mode unless your environment requires a global issuer.',
-          'Copy the provider client ID, client secret, and issuer URL into DockHub.',
+          'Copy the provider client ID, client secret, and issuer URL into KNetraHub.',
           'Make sure the selected scopes or property mappings include username, email, display name, and groups.'
         ],
         env: ['NUXT_OIDC_ISSUER', 'NUXT_OIDC_CLIENT_ID', 'NUXT_OIDC_CLIENT_SECRET', 'NUXT_OIDC_SCOPE', 'NUXT_OIDC_GROUPS_CLAIM', 'NUXT_OIDC_PROVIDER_NAME']
@@ -598,15 +598,15 @@ const configurationSections = [
         summary: 'Most standards-based OIDC providers work when they support discovery, authorization code flow, PKCE, and a usable groups claim.',
         options: [
           ['Discovery', 'The issuer must expose /.well-known/openid-configuration with authorization, token, and JWKS endpoints.'],
-          ['Callback', 'The provider must allow the exact DockHub callback URL.'],
+          ['Callback', 'The provider must allow the exact KNetraHub callback URL.'],
           ['Claims', 'Use preferred_username/name/groups when available, or adjust the claim fields in Settings.'],
           ['Groups', 'If groups are nested, set a dot path such as realm_access.roles.'],
-          ['Userinfo fallback', 'DockHub checks userinfo when the ID token does not include the configured groups claim.']
+          ['Userinfo fallback', 'KNetraHub checks userinfo when the ID token does not include the configured groups claim.']
         ] as [string, string][],
         steps: [
           'Create a web or confidential OIDC application.',
           'Enable authorization code flow and PKCE when the provider asks.',
-          'Register the callback URL shown in DockHub Settings.',
+          'Register the callback URL shown in KNetraHub Settings.',
           'Request openid profile email groups or the provider equivalent.',
           'Test with a user that should be viewer, operator, and admin.'
         ],
@@ -616,7 +616,7 @@ const configurationSections = [
         id: 'ldap-config',
         title: 'LDAP / Active Directory',
         icon: 'i-lucide-building-2',
-        summary: 'LDAP login binds with a service account, searches for the user, verifies the password as that user, then maps memberOf groups to DockHub roles.',
+        summary: 'LDAP login binds with a service account, searches for the user, verifies the password as that user, then maps memberOf groups to KNetraHub roles.',
         options: [
           ['NUXT_LDAP_ENABLED', 'Turns LDAP login on by default. UI overrides can also enable or disable it.'],
           ['NUXT_LDAP_URL', 'Directory URL such as ldaps://ldap.example.com:636.'],
@@ -630,10 +630,10 @@ const configurationSections = [
           ['NUXT_LDAP_OPERATOR_GROUP', 'Operator group DN or matching string.']
         ] as [string, string][],
         steps: [
-          'Use LDAPS when possible and confirm DockHub can reach the directory.',
+          'Use LDAPS when possible and confirm KNetraHub can reach the directory.',
           'Create a least-privilege bind account that can search users and read group membership.',
           'Set the user search base and filter.',
-          'Map admin and operator group DNs to DockHub roles.',
+          'Map admin and operator group DNs to KNetraHub roles.',
           'Test one user from each expected role and one user with no mapped group.'
         ],
         env: ['NUXT_LDAP_ENABLED', 'NUXT_LDAP_URL', 'NUXT_LDAP_BIND_DN', 'NUXT_LDAP_BIND_CREDENTIALS', 'NUXT_LDAP_SEARCH_BASE', 'NUXT_LDAP_SEARCH_FILTER', 'NUXT_LDAP_GROUP_SEARCH_BASE', 'NUXT_LDAP_GROUP_SEARCH_FILTER', 'NUXT_LDAP_ADMIN_GROUP', 'NUXT_LDAP_OPERATOR_GROUP']
@@ -661,7 +661,7 @@ const dockhubOidcValues: [string, string][] = [
 ]
 
 const authentikValues: [string, string][] = [
-  ['Application', 'DockHub'],
+  ['Application', 'KNetraHub'],
   ['Provider', 'OAuth2/OpenID'],
   ['Issuer mode', 'Per-provider'],
   ['Issuer URL', 'https://authentik.example.com/application/o/dockhub/'],
@@ -669,33 +669,33 @@ const authentikValues: [string, string][] = [
 ]
 
 const keycloakSteps = [
-  { title: '1. Create or choose a realm', body: 'Use a realm dedicated to infrastructure access, for example infrastructure. The DockHub issuer URL will end with /realms/infrastructure.' },
+  { title: '1. Create or choose a realm', body: 'Use a realm dedicated to infrastructure access, for example infrastructure. The KNetraHub issuer URL will end with /realms/infrastructure.' },
   { title: '2. Create an OpenID Connect client', body: 'In Clients, create a client with Client ID dockhub and Client type OpenID Connect. Use a confidential client by enabling client authentication.' },
-  { title: '3. Configure login settings', body: 'Keep the standard authorization code flow enabled. Add the DockHub callback URL as a valid redirect URI and add the DockHub origin as a web origin.' },
-  { title: '4. Copy the client secret', body: 'Open the client Credentials tab and copy the generated secret into DockHub. Rotate it if it was exposed.' },
-  { title: '5. Add groups and memberships', body: 'Create groups such as swarm-admins and swarm-operators. Add users to the group that matches their DockHub role.' },
-  { title: '6. Add a groups claim mapper', body: 'In the client dedicated scope or a client scope assigned to DockHub, add a Group Membership mapper with token claim name groups. Include it in the ID token or userinfo response.' }
+  { title: '3. Configure login settings', body: 'Keep the standard authorization code flow enabled. Add the KNetraHub callback URL as a valid redirect URI and add the KNetraHub origin as a web origin.' },
+  { title: '4. Copy the client secret', body: 'Open the client Credentials tab and copy the generated secret into KNetraHub. Rotate it if it was exposed.' },
+  { title: '5. Add groups and memberships', body: 'Create groups such as swarm-admins and swarm-operators. Add users to the group that matches their KNetraHub role.' },
+  { title: '6. Add a groups claim mapper', body: 'In the client dedicated scope or a client scope assigned to KNetraHub, add a Group Membership mapper with token claim name groups. Include it in the ID token or userinfo response.' }
 ]
 
 const dockhubSteps = [
   { title: '1. Open Settings > Authentication', body: 'Enable OIDC single sign-on and keep local admin access available until SSO is tested.' },
   { title: '2. Paste provider values', body: 'Use the issuer URL, client ID, and client secret from the provider. Do not include the /.well-known/openid-configuration suffix.' },
-  { title: '3. Confirm callback URL', body: 'Leave Redirect URI blank when the shown effective URL is the public URL users reach. Set it explicitly when DockHub is behind a proxy.' },
+  { title: '3. Confirm callback URL', body: 'Leave Redirect URI blank when the shown effective URL is the public URL users reach. Set it explicitly when KNetraHub is behind a proxy.' },
   { title: '4. Map claims and groups', body: 'Use preferred_username for username, name for display name, groups for groups claim, and the same group values you configured at the provider.' },
   { title: '5. Save and test', body: 'Click Save OIDC, sign out, and test the SSO login button. Verify the synced user has the expected role in Users.' }
 ]
 
 const authentikSteps = [
-  { title: '1. Create application and provider', body: 'In Authentik, create an Application named DockHub and attach an OAuth2/OpenID provider.' },
-  { title: '2. Configure redirect URI', body: 'Add the DockHub callback URL as an authorization redirect URI. It must match the effective redirect URI shown in DockHub.' },
-  { title: '3. Keep per-provider issuer mode', body: 'The default per-provider issuer produces an issuer like https://authentik.example.com/application/o/dockhub/. Copy that value into DockHub.' },
+  { title: '1. Create application and provider', body: 'In Authentik, create an Application named KNetraHub and attach an OAuth2/OpenID provider.' },
+  { title: '2. Configure redirect URI', body: 'Add the KNetraHub callback URL as an authorization redirect URI. It must match the effective redirect URI shown in KNetraHub.' },
+  { title: '3. Keep per-provider issuer mode', body: 'The default per-provider issuer produces an issuer like https://authentik.example.com/application/o/dockhub/. Copy that value into KNetraHub.' },
   { title: '4. Confirm scopes and claims', body: 'Allow openid, profile, email, and groups, or add property mappings that expose equivalent username, display name, email, and groups claims.' },
   { title: '5. Save and test', body: 'Set provider label to Authentik, save OIDC, then test login with users from admin, operator, and viewer paths.' }
 ]
 
 const troubleshooting: [string, string][] = [
-  ['Invalid redirect_uri', 'The provider redirect URI must exactly match DockHub effective redirect URI, including scheme, host, path, and port.'],
-  ['OIDC discovery failed', 'Use the issuer URL only, not the /.well-known/openid-configuration URL. Confirm DockHub can reach the provider from the server.'],
+  ['Invalid redirect_uri', 'The provider redirect URI must exactly match KNetraHub effective redirect URI, including scheme, host, path, and port.'],
+  ['OIDC discovery failed', 'Use the issuer URL only, not the /.well-known/openid-configuration URL. Confirm KNetraHub can reach the provider from the server.'],
   ['User logs in as viewer', 'The groups claim did not match admin/operator values, or the provider did not include groups in ID token/userinfo.'],
   ['Client authentication failed', 'Check the client secret and confirm the provider client is configured as confidential when a secret is required.'],
   ['Works locally but not through proxy', 'Set NUXT_OIDC_REDIRECT_URI or the UI Redirect URI to the external HTTPS callback URL.']
@@ -808,7 +808,7 @@ watch(activeSection, (val) => {
           </button>
           <NuxtLink to="/" class="flex items-center gap-2 shrink-0 group">
             <DockHubLogo variant="icon" class="size-7 transition-opacity group-hover:opacity-80 drop-shadow-[0_4px_12px_rgba(36,150,237,0.3)]" />
-            <span class="font-display text-sm font-bold text-foam hidden sm:inline">DockHub</span>
+            <span class="font-display text-sm font-bold text-foam hidden sm:inline">KNetraHub</span>
           </NuxtLink>
           <UIcon name="i-lucide-chevron-right" class="size-3.5 text-faint hidden sm:block shrink-0" />
           <span class="text-sm font-medium text-muted truncate">Documentation</span>
@@ -869,7 +869,7 @@ watch(activeSection, (val) => {
                 </div>
                 <div>
                   <div class="flex items-center gap-2 mb-1">
-                    <span class="text-xs font-bold uppercase tracking-widest text-beacon">DockHub</span>
+                    <span class="text-xs font-bold uppercase tracking-widest text-beacon">KNetraHub</span>
                     <span class="rounded-full bg-beacon/10 px-2 py-0.5 text-[10px] font-semibold text-beacon ring-1 ring-beacon/25">v1.0</span>
                   </div>
                   <h1 class="font-display text-2xl font-bold text-foam leading-tight">Documentation</h1>
@@ -896,7 +896,7 @@ watch(activeSection, (val) => {
           <!-- Features -->
           <div class="mt-10">
             <p class="section-eyebrow">Core capabilities</p>
-            <h2 class="section-title">What DockHub does</h2>
+            <h2 class="section-title">What KNetraHub does</h2>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 mt-4">
               <div v-for="f in appFeatures" :key="f.title" class="feature-card">
                 <span class="flex size-8 items-center justify-center rounded-lg bg-surface-2 ring-1 ring-hull mb-3">
@@ -994,7 +994,7 @@ watch(activeSection, (val) => {
           <div class="mb-8">
             <p class="section-eyebrow">Guides</p>
             <h1 class="section-h1">User Manual</h1>
-            <p class="mt-2 text-sm text-muted max-w-2xl">Feature usage, daily operational workflows, and guidance for every DockHub page.</p>
+            <p class="mt-2 text-sm text-muted max-w-2xl">Feature usage, daily operational workflows, and guidance for every KNetraHub page.</p>
           </div>
 
           <div class="space-y-10">
@@ -1148,7 +1148,7 @@ watch(activeSection, (val) => {
                 <p class="section-eyebrow">OIDC provider guide</p>
                 <h2 class="section-title">Keycloak and Authentik setup details</h2>
                 <p class="mt-2 max-w-3xl text-sm text-muted">
-                  DockHub validates ID tokens using the provider discovery document and JWKS, then maps the configured groups claim to viewer, operator, or admin.
+                  KNetraHub validates ID tokens using the provider discovery document and JWKS, then maps the configured groups claim to viewer, operator, or admin.
                 </p>
               </div>
 
@@ -1214,7 +1214,7 @@ watch(activeSection, (val) => {
                       </div>
                     </div>
                     <div class="mt-3 rounded-lg bg-beacon/10 px-3 py-2 text-xs text-beacon ring-1 ring-beacon/20">
-                      In DockHub, use the issuer value only. The discovery path is added automatically.
+                      In KNetraHub, use the issuer value only. The discovery path is added automatically.
                     </div>
                   </div>
                 </figure>
@@ -1224,7 +1224,7 @@ watch(activeSection, (val) => {
                 <article class="space-y-4">
                   <div class="flex items-center gap-2">
                     <UIcon name="i-lucide-anchor" class="size-4 text-beacon" />
-                    <h3 class="font-display text-lg font-semibold text-foam">DockHub side</h3>
+                    <h3 class="font-display text-lg font-semibold text-foam">KNetraHub side</h3>
                   </div>
                   <ol class="space-y-3 text-sm text-muted">
                     <li v-for="step in dockhubSteps" :key="step.title">
@@ -1234,7 +1234,7 @@ watch(activeSection, (val) => {
                   </ol>
                 </article>
                 <figure class="doc-shot">
-                  <div class="shot-toolbar"><span /><span /><span /><p>DockHub OIDC settings</p></div>
+                  <div class="shot-toolbar"><span /><span /><span /><p>KNetraHub OIDC settings</p></div>
                   <div class="shot-body">
                     <div class="flex items-center justify-between">
                       <p class="text-sm font-semibold text-foam">OIDC single sign-on</p>
@@ -1288,11 +1288,11 @@ watch(activeSection, (val) => {
             </span>
             <h2 class="font-display text-xl font-semibold text-foam mb-2">API Reference</h2>
             <p class="text-sm text-muted max-w-sm text-center leading-relaxed mb-6">
-              The interactive Swagger UI is served by the live DockHub server and is not available in this static documentation build.
+              The interactive Swagger UI is served by the live KNetraHub server and is not available in this static documentation build.
             </p>
             <div class="flex flex-wrap gap-3 justify-center">
               <div class="rounded-lg border border-hull bg-surface p-4 text-left max-w-xs">
-                <p class="text-xs font-semibold text-foam mb-2">When DockHub is running</p>
+                <p class="text-xs font-semibold text-foam mb-2">When KNetraHub is running</p>
                 <p class="text-xs text-muted font-mono">http://your-server/api/swagger</p>
               </div>
             </div>
@@ -1314,7 +1314,7 @@ watch(activeSection, (val) => {
             v-else-if="apiEverLoaded"
             src="/api/swagger"
             class="api-iframe"
-            title="DockHub API Reference"
+            title="KNetraHub API Reference"
           />
         </div>
       </main>
@@ -1326,8 +1326,8 @@ watch(activeSection, (val) => {
         <div class="flex items-center gap-2 min-w-0">
           <DockHubLogo variant="icon" class="size-4 opacity-50 shrink-0" />
           <span class="text-xs text-faint truncate whitespace-nowrap">
-            <span class="sm:hidden">DockHub</span>
-            <span class="hidden sm:inline">DockHub — Docker Swarm Management Console</span>
+            <span class="sm:hidden">KNetraHub</span>
+            <span class="hidden sm:inline">KNetraHub — Docker Swarm Management Console</span>
           </span>
         </div>
         <p class="text-xs text-faint flex items-center gap-1 whitespace-nowrap shrink-0">

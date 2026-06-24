@@ -35,6 +35,7 @@ interface OidcSettings {
   usernameClaim: string
   displayNameClaim: string
   groupsClaim: string
+  rolesClaim: string
   adminGroup: string
   operatorGroup: string
   providerName: string
@@ -90,11 +91,54 @@ const {
 
 const tabs = [
   { label: 'Appearance', icon: 'i-lucide-paintbrush', slot: 'appearance' as const },
+  { label: 'Apps & Access', icon: 'i-lucide-layout-grid', slot: 'access' as const },
   { label: 'Integrations', icon: 'i-lucide-plug', slot: 'integrations' as const },
   { label: 'Authentication', icon: 'i-lucide-shield-check', slot: 'authentication' as const },
   { label: 'Alerts', icon: 'i-lucide-bell', slot: 'alerts' as const },
   { label: 'Reference', icon: 'i-lucide-book-open', slot: 'reference' as const }
 ]
+
+// ─── Apps & Access ───────────────────────────────────────────────────────────
+// Maps Keycloak realm roles to per-app access tiers (viewer/operator/admin).
+// Stored in the DB; the local admin is always a superuser regardless of this.
+const APP_TIERS = ['viewer', 'operator', 'admin'] as const
+const accessApps = getModuleRegistry()
+type RoleMap = Record<string, Record<string, string[]>>
+const { data: appRoleMap, refresh: refreshAppRoles } = useFetch<RoleMap>('/api/settings/app-roles', { lazy: true })
+// Editable comma/newline-separated role names per app+tier.
+const accessForm = reactive<Record<string, Record<string, string>>>({})
+const savingAccess = ref(false)
+
+watch(appRoleMap, (value) => {
+  for (const app of accessApps) {
+    accessForm[app.key] = accessForm[app.key] || {}
+    for (const tier of APP_TIERS) {
+      accessForm[app.key]![tier] = (value?.[app.key]?.[tier] || []).join(', ')
+    }
+  }
+}, { immediate: true })
+
+function parseRoles(s: string): string[] {
+  return [...new Set(s.split(/[,\n]/).map((r) => r.trim()).filter(Boolean))]
+}
+
+async function saveAccess() {
+  savingAccess.value = true
+  try {
+    const map: RoleMap = {}
+    for (const app of accessApps) {
+      map[app.key] = {}
+      for (const tier of APP_TIERS) map[app.key]![tier] = parseRoles(accessForm[app.key]?.[tier] || '')
+    }
+    await $fetch('/api/settings/app-roles', { method: 'PUT', body: map })
+    toast.add({ title: 'Access map saved', color: 'primary', icon: 'i-lucide-check' })
+    await refreshAppRoles()
+  } catch (e: any) {
+    toast.add({ title: 'Save failed', description: e?.data?.statusMessage, color: 'error' })
+  } finally {
+    savingAccess.value = false
+  }
+}
 
 // ─── GitLab ───────────────────────────────────────────────────────────────────
 const gitlabForm = reactive({ enabled: false, url: '', token: '', projectId: '', branch: '', stacksPath: '' })
@@ -373,7 +417,7 @@ async function revertAppearancePreview() {
 }
 
 async function resetAppearanceToDefaults() {
-  if (!confirm('Reset appearance to the built-in DockHub defaults?')) return
+  if (!confirm('Reset appearance to the built-in KNetraHub defaults?')) return
   resettingAppearance.value = true
   try {
     await resetAppearance()
@@ -389,25 +433,25 @@ const oidcGuide = {
   checklist: [
     'Create an OIDC/OAuth client in the identity provider.',
     'Register the effective callback URL as an allowed redirect URI.',
-    'Copy the issuer, client ID, and client secret into DockHub.',
+    'Copy the issuer, client ID, and client secret into KNetraHub.',
     'Include scopes that expose profile, email, and group claims.',
     'Map the admin and operator groups, then save and test SSO login.'
   ],
   fields: [
     { name: 'Issuer URL', detail: 'Use the exact issuer from provider discovery, without the /.well-known/openid-configuration suffix.' },
-    { name: 'Redirect URI', detail: 'Leave blank to use the shown effective URL, or set a public URL when DockHub is behind a proxy.' },
+    { name: 'Redirect URI', detail: 'Leave blank to use the shown effective URL, or set a public URL when KNetraHub is behind a proxy.' },
     { name: 'Scope', detail: 'Keep openid. Add profile, email, and groups when your provider requires scopes for those claims.' },
     { name: 'Claims', detail: 'Username, display name, and groups can use plain claim names or dot paths such as realm_access.roles.' },
-    { name: 'Groups', detail: 'OIDC group values are matched to DockHub roles. Users without a match become viewers.' }
+    { name: 'Groups', detail: 'OIDC group values are matched to KNetraHub roles. Users without a match become viewers.' }
   ]
 }
 
 const ldapGuide = {
   checklist: [
-    'Use an LDAP or LDAPS URL reachable from the DockHub server.',
+    'Use an LDAP or LDAPS URL reachable from the KNetraHub server.',
     'Enter a bind DN that can search users, or leave it blank for anonymous bind if allowed.',
     'Set the user search base and a filter that includes {{username}}.',
-    'Map the directory groups that should become DockHub admins or operators.',
+    'Map the directory groups that should become KNetraHub admins or operators.',
     'Save, then test with a directory user before relying on LDAP broadly.'
   ],
   fields: [
@@ -415,7 +459,7 @@ const ldapGuide = {
     { name: 'Bind DN', detail: 'Use a service account DN, for example cn=dockhub,ou=service,dc=example,dc=com.' },
     { name: 'Search base', detail: 'Point this at the subtree containing user accounts, not the whole directory when you can avoid it.' },
     { name: 'Search filter', detail: 'Active Directory often uses (sAMAccountName={{username}}); OpenLDAP commonly uses (uid={{username}}).' },
-    { name: 'Groups', detail: 'DockHub checks the user memberOf values against the admin and operator group fields.' }
+    { name: 'Groups', detail: 'KNetraHub checks the user memberOf values against the admin and operator group fields.' }
   ]
 }
 
@@ -429,15 +473,15 @@ const envVars = [
   { k: 'NUXT_LDAP_BIND_DN / BIND_CREDENTIALS', d: 'Service account credentials for directory search' },
   { k: 'NUXT_LDAP_SEARCH_BASE', d: 'Base DN for user lookups' },
   { k: 'NUXT_LDAP_SEARCH_FILTER', d: 'User lookup filter (default: (uid={{username}}))' },
-  { k: 'NUXT_LDAP_ADMIN_GROUP / OPERATOR_GROUP', d: 'Group DNs mapped to DockHub roles' },
+  { k: 'NUXT_LDAP_ADMIN_GROUP / OPERATOR_GROUP', d: 'Group DNs mapped to KNetraHub roles' },
   { k: 'NUXT_OIDC_ENABLED', d: 'Default OIDC single sign-on state' },
   { k: 'NUXT_OIDC_ISSUER', d: 'Provider issuer URL; endpoints are discovered automatically' },
   { k: 'NUXT_OIDC_CLIENT_ID / CLIENT_SECRET', d: 'OAuth client registered at the provider' },
   { k: 'NUXT_OIDC_REDIRECT_URI', d: 'Override the callback URL (default: {origin}/api/auth/oidc/callback)' },
   { k: 'NUXT_OIDC_SCOPE', d: 'Requested scopes (default: openid profile email groups)' },
-  { k: 'NUXT_OIDC_USERNAME_CLAIM', d: 'Claim used as the DockHub username (default: preferred_username)' },
+  { k: 'NUXT_OIDC_USERNAME_CLAIM', d: 'Claim used as the KNetraHub username (default: preferred_username)' },
   { k: 'NUXT_OIDC_GROUPS_CLAIM', d: 'Claim carrying group names; dot-paths work (default: groups)' },
-  { k: 'NUXT_OIDC_ADMIN_GROUP / OPERATOR_GROUP', d: 'Group names mapped to DockHub roles' },
+  { k: 'NUXT_OIDC_ADMIN_GROUP / OPERATOR_GROUP', d: 'Group names mapped to KNetraHub roles' },
   { k: 'NUXT_OIDC_PROVIDER_NAME', d: 'Label for the SSO login button' },
   { k: 'NUXT_GITLAB_TOKEN', d: 'Personal/project access token with api scope (or configure under Settings -> Integrations)' },
   { k: 'NUXT_GITLAB_PROJECT_ID', d: 'Numeric project ID where compose files are stored' },
@@ -486,6 +530,7 @@ const oidcForm = reactive({
   usernameClaim: '',
   displayNameClaim: '',
   groupsClaim: '',
+  rolesClaim: '',
   adminGroup: '',
   operatorGroup: '',
   providerName: ''
@@ -520,6 +565,7 @@ watch(auth, (value) => {
     usernameClaim: value.oidc.usernameClaim,
     displayNameClaim: value.oidc.displayNameClaim,
     groupsClaim: value.oidc.groupsClaim,
+    rolesClaim: value.oidc.rolesClaim,
     adminGroup: value.oidc.adminGroup,
     operatorGroup: value.oidc.operatorGroup,
     providerName: value.oidc.providerName
@@ -610,7 +656,7 @@ async function resetProvider(provider: 'ldap' | 'oidc') {
             </header>
 
             <UFormField label="App name" description="Shown in the sidebar header and browser tab title.">
-              <UInput v-model="appearance.appName" class="w-full sm:w-72" placeholder="DockHub" />
+              <UInput v-model="appearance.appName" class="w-full sm:w-72" placeholder="KNetraHub" />
             </UFormField>
 
             <UFormField label="Primary color" description="Drives buttons, links, and accents across the app.">
@@ -724,6 +770,53 @@ async function resetProvider(provider: 'ldap' | 'oidc') {
                 </p>
               </div>
             </div>
+          </section>
+        </div>
+      </template>
+
+      <template #access>
+        <div class="pt-4 space-y-4">
+          <section class="panel p-5">
+            <header class="mb-2 flex flex-col gap-1">
+              <h3 class="font-display text-sm font-semibold text-foam flex items-center gap-2">
+                <UIcon name="i-lucide-layout-grid" class="size-4 text-beacon" />
+                App access by identity-provider role
+              </h3>
+              <p class="text-xs text-(--color-muted)">
+                Map your Keycloak realm roles (the <code class="font-mono text-beacon">{{ oidcForm.rolesClaim || 'realm_access.roles' }}</code>
+                claim) to each app and tier. A user gets the highest tier whose role list
+                matches one of their realm roles; with no match, the app is hidden. Separate
+                multiple roles with commas. The local admin always sees every app.
+              </p>
+            </header>
+
+            <div class="grid gap-4 lg:grid-cols-2">
+              <div v-for="app in accessApps" :key="app.key" class="rounded-lg border border-hull-soft bg-surface-2/40 p-4">
+                <div class="mb-3 flex items-center gap-2">
+                  <UIcon :name="app.icon" class="size-4 text-beacon" />
+                  <p class="text-sm font-semibold text-foam">{{ app.name }}</p>
+                  <UBadge color="neutral" variant="subtle" size="sm" :label="app.type === 'local' ? 'Built in' : 'Subsystem'" class="ml-auto" />
+                </div>
+                <div v-if="accessForm[app.key]" class="space-y-3">
+                  <UFormField
+                    v-for="tier in APP_TIERS"
+                    :key="tier"
+                    :label="tier.charAt(0).toUpperCase() + tier.slice(1)"
+                    :description="tier === 'viewer' ? 'Read-only' : tier === 'operator' ? 'Day-to-day actions' : 'Full control'"
+                  >
+                    <UInput
+                      v-model="accessForm[app.key]![tier]"
+                      class="w-full font-mono text-xs"
+                      placeholder="e.g. team-ops, sre"
+                    />
+                  </UFormField>
+                </div>
+              </div>
+            </div>
+
+            <footer class="mt-4 flex justify-end border-t border-hull pt-4">
+              <UButton color="primary" label="Save access map" icon="i-lucide-save" :loading="savingAccess" @click="saveAccess" />
+            </footer>
           </section>
         </div>
       </template>
@@ -868,6 +961,9 @@ async function resetProvider(provider: 'ldap' | 'oidc') {
                   </UFormField>
                   <UFormField label="Groups claim">
                     <UInput v-model="oidcForm.groupsClaim" class="w-full font-mono" />
+                  </UFormField>
+                  <UFormField label="Realm roles claim" description="Drives per-app access (Apps & Access tab).">
+                    <UInput v-model="oidcForm.rolesClaim" class="w-full font-mono" placeholder="realm_access.roles" />
                   </UFormField>
                   <UFormField label="Admin group">
                     <UInput v-model="oidcForm.adminGroup" class="w-full font-mono" />

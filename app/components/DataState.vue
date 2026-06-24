@@ -11,7 +11,7 @@ defineProps<{ status: string; error?: any; empty?: boolean; emptyLabel?: string;
       <UIcon name="i-lucide-triangle-alert" class="size-5 text-rose-400 mt-0.5" />
       <div>
         <p class="font-medium text-rose-200">Couldn't load data</p>
-        <p class="mt-1 text-sm text-(--color-muted)">{{ error?.data?.statusMessage || error?.statusMessage || error?.message || 'Check that DockHub can reach a swarm manager.' }}</p>
+        <p class="mt-1 text-sm text-(--color-muted)">{{ error?.data?.statusMessage || error?.statusMessage || error?.message || 'Check that KNetraHub can reach a swarm manager.' }}</p>
       </div>
     </div>
   </div>

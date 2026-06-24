@@ -6,4 +6,5 @@
 FROM gcr.io/distroless/nodejs22-debian12
 WORKDIR /agent
 COPY index.mjs ./
+COPY collectors ./collectors
 CMD ["index.mjs"]

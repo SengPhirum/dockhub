@@ -1,7 +1,7 @@
 import { ldapAuthenticate } from '~~/server/utils/ldap'
 import { getLdapSettings } from '~~/server/utils/authSettings'
 import { verifyLocalUser, upsertExternalUser, touchLogin, audit } from '~~/server/utils/store'
-import { setSession } from '~~/server/utils/auth'
+import { setSession, resolveUserEntitlements } from '~~/server/utils/auth'
 
 export default defineEventHandler(async (event) => {
   const { username, password } = await readBody<{ username: string; password: string }>(event)
@@ -22,7 +22,11 @@ export default defineEventHandler(async (event) => {
         username: stored.username,
         displayName: stored.displayName,
         role: stored.role,
-        source: 'ldap' as const
+        source: 'ldap' as const,
+        // LDAP carries no Keycloak realm roles today; per-app access for LDAP
+        // users is a documented follow-up. They get no apps unless promoted to
+        // a local admin.
+        realmRoles: [] as string[]
       }
     } catch (err: any) {
       // fall through to local auth on auth failure; surface infra errors
@@ -39,7 +43,8 @@ export default defineEventHandler(async (event) => {
         username: local.username,
         displayName: local.displayName,
         role: local.role,
-        source: 'local' as const
+        source: 'local' as const,
+        realmRoles: [] as string[]
       }
     }
   }
@@ -52,5 +57,6 @@ export default defineEventHandler(async (event) => {
   await setSession(event, session)
   await audit({ actor: session.username, action: 'auth.login', detail: `via ${session.source}` })
 
-  return { user: session }
+  const apps = await resolveUserEntitlements(session)
+  return { user: { ...session, apps } }
 })

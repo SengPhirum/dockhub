@@ -33,6 +33,8 @@ export interface OidcSettings {
   usernameClaim: string
   displayNameClaim: string
   groupsClaim: string
+  /** Claim holding Keycloak realm roles, used for per-app access. */
+  rolesClaim: string
   adminGroup: string
   operatorGroup: string
   providerName: string
@@ -70,6 +72,7 @@ function envOidc(): OidcSettings {
     usernameClaim: c.usernameClaim,
     displayNameClaim: c.displayNameClaim,
     groupsClaim: c.groupsClaim,
+    rolesClaim: c.rolesClaim,
     adminGroup: c.adminGroup,
     operatorGroup: c.operatorGroup,
     providerName: c.providerName

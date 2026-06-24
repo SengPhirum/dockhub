@@ -95,6 +95,9 @@ export default defineNuxtConfig({
       displayNameClaim: process.env.NUXT_OIDC_DISPLAY_NAME_CLAIM || 'name',
       // Claim holding group names; dot-paths supported (e.g. "realm_access.roles")
       groupsClaim: process.env.NUXT_OIDC_GROUPS_CLAIM || 'groups',
+      // Claim holding Keycloak realm roles; these drive per-app access (Settings
+      // -> Apps & Access). Dot-paths supported; Keycloak's default is realm_access.roles.
+      rolesClaim: process.env.NUXT_OIDC_ROLES_CLAIM || 'realm_access.roles',
       // group -> DockHub role mapping; unmatched users become viewers
       adminGroup: process.env.NUXT_OIDC_ADMIN_GROUP || '',
       operatorGroup: process.env.NUXT_OIDC_OPERATOR_GROUP || '',
@@ -145,8 +148,20 @@ export default defineNuxtConfig({
 
     // --- Exposed to the client (safe values only) ---
     public: {
-      appName: process.env.NUXT_PUBLIC_APP_NAME || 'DockHub',
-      staticDocs: isDocsBuild
+      appName: process.env.NUXT_PUBLIC_APP_NAME || 'KNetraHub',
+      staticDocs: isDocsBuild,
+      // KNetraHub subsystem modules - remote entry URLs and API bases for
+      // Module Federation remotes (server/utils on the portal never call
+      // these directly; only the browser does). Safe defaults point at the
+      // documented local dev ports so `npm run dev:mf` works out of the box.
+      knetrahub: {
+        netRemoteEntry: process.env.NUXT_PUBLIC_KNETRAHUB_NET_REMOTE_ENTRY || 'http://localhost:3101/remoteEntry.js',
+        netApiBase: process.env.NUXT_PUBLIC_KNETRAHUB_NET_API_BASE || 'http://localhost:4101/api',
+        serverRemoteEntry: process.env.NUXT_PUBLIC_KNETRAHUB_SERVER_REMOTE_ENTRY || 'http://localhost:3102/remoteEntry.js',
+        serverApiBase: process.env.NUXT_PUBLIC_KNETRAHUB_SERVER_API_BASE || 'http://localhost:4102/api',
+        ipmgtRemoteEntry: process.env.NUXT_PUBLIC_KNETRAHUB_IPMGT_REMOTE_ENTRY || 'http://localhost:3103/remoteEntry.js',
+        ipmgtApiBase: process.env.NUXT_PUBLIC_KNETRAHUB_IPMGT_API_BASE || 'http://localhost:4103/api'
+      }
     }
   },
 

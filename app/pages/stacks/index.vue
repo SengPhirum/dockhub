@@ -197,7 +197,7 @@ async function deploy() {
             <UTextarea v-model="form.compose" :rows="14" class="w-full font-mono text-xs" :ui="{ base: 'font-mono' }" spellcheck="false" :disabled="deploying" />
           </UFormField>
           <UFormField v-if="gl?.enabled" label="Commit message">
-            <UInput v-model="form.message" placeholder="Deploy my-app via DockHub" class="w-full" :disabled="deploying" />
+            <UInput v-model="form.message" placeholder="Deploy my-app via KNetraHub" class="w-full" :disabled="deploying" />
           </UFormField>
         </div>
       </template>

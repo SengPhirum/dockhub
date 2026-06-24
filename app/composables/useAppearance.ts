@@ -11,7 +11,7 @@ const DEFAULT_PRIMARY_COLOR = '#2496ED'
 
 function defaults(): AppearanceSettings {
   return {
-    appName: useRuntimeConfig().public.appName || 'DockHub',
+    appName: useRuntimeConfig().public.appName || 'KNetraHub',
     primaryColor: DEFAULT_PRIMARY_COLOR,
     logoHorizontalUrl: '',
     logoIconUrl: '',

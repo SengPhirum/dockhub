@@ -1,8 +1,13 @@
 <script setup lang="ts">
-const { user, logout } = useAuth()
+const { user, logout, hasApp } = useAuth()
 const { fetchPreferences } = usePreferences()
 const route = useRoute()
 const mobileOpen = ref(false)
+
+// "Deploy stack" is a Dock-app action; only surface it while inside Dock and
+// when the user can actually deploy (resolved against their docker tier).
+const inDock = computed(() => appKeyForRoute(route.path) === 'docker')
+const canDeploy = computed(() => inDock.value && hasApp('docker', 'operator'))
 
 // close the mobile drawer on navigation
 watch(() => route.fullPath, () => { mobileOpen.value = false })
@@ -63,6 +68,7 @@ const { appearance } = useAppearance()
         <ThemeModeControl compact />
 
         <UButton
+          v-if="canDeploy"
           to="/stacks"
           icon="i-lucide-upload"
           color="primary"

@@ -10,6 +10,8 @@ export interface OidcResult {
   displayName: string
   email?: string
   role: Role
+  /** Keycloak realm roles (from cfg.rolesClaim), used for per-app access. */
+  realmRoles: string[]
 }
 
 interface OidcDiscovery {
@@ -168,8 +170,9 @@ export async function oidcCompleteLogin(event: H3Event): Promise<OidcResult> {
   const displayName = str(claimPath(claims, cfg.displayNameClaim)) || username
   const email = str(claims.email) || undefined
   const role = resolveRole(claimPath(claims, cfg.groupsClaim), cfg)
+  const realmRoles = normalizeGroups(claimPath(claims, cfg.rolesClaim))
 
-  return { username, displayName, email, role }
+  return { username, displayName, email, role, realmRoles }
 }
 
 function resolveRole(groupsClaim: unknown, cfg: OidcSettings): Role {

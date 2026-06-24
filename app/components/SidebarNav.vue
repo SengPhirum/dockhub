@@ -3,12 +3,15 @@ defineProps<{ collapsed?: boolean }>()
 const emit = defineEmits<{ navigate: [] }>()
 
 const groups = useNav()
-const { can } = useAuth()
+const { can, hasPermission } = useAuth()
 const route = useRoute()
 
 const visibleGroups = computed(() =>
-  groups
-    .map((g) => ({ ...g, items: g.items.filter((i) => !i.minRole || can(i.minRole)) }))
+  groups.value
+    .map((g) => ({
+      ...g,
+      items: g.items.filter((i) => (!i.minRole || can(i.minRole)) && (!i.permission || hasPermission(i.permission)))
+    }))
     .filter((g) => g.items.length)
 )
 const primaryGroups = computed(() => visibleGroups.value.filter((g) => g.label !== 'Documentation'))
@@ -38,7 +41,7 @@ function isActive(to: string) {
     <nav class="flex flex-1 flex-col overflow-y-auto px-3 py-4">
       <div class="space-y-6">
         <div v-for="group in primaryGroups" :key="group.label">
-          <p class="px-2 mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+          <p v-if="group.label" class="px-2 mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
             {{ group.label }}
           </p>
           <ul class="space-y-0.5">

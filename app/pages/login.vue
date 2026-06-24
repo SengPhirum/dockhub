@@ -21,7 +21,7 @@ async function submit() {
   error.value = ''
   try {
     await login(username.value, password.value)
-    toast.add({ title: 'Welcome to DockHub', color: 'primary' })
+    toast.add({ title: 'Welcome to KNetraHub', color: 'primary' })
     await navigateTo('/')
   } catch (e: any) {
     error.value = e?.data?.statusMessage || 'Invalid username or password'

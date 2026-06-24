@@ -19,7 +19,8 @@ export default defineEventHandler(async (event) => {
     username: stored.username,
     displayName: stored.displayName,
     role: stored.role,
-    source: 'oidc' as const
+    source: 'oidc' as const,
+    realmRoles: result.realmRoles
   }
 
   await touchLogin(session.username)

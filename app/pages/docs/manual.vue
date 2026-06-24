@@ -31,11 +31,11 @@ const featureGuides = [
     id: 'stacks',
     title: 'Stacks',
     icon: 'i-lucide-layers',
-    summary: 'Deploy compose files into Docker Swarm and keep desired state visible in DockHub.',
+    summary: 'Deploy compose files into Docker Swarm and keep desired state visible in KNetraHub.',
     steps: [
       'Open Stacks, add or edit a compose file, then deploy it.',
-      'Use service names, images, ports, networks, volumes, secrets, and configs supported by DockHub.',
-      'When GitLab is configured, review commit history and roll back to a previous compose version; each commit is attributed to the full name of the DockHub user who made the change.',
+      'Use service names, images, ports, networks, volumes, secrets, and configs supported by KNetraHub.',
+      'When GitLab is configured, review commit history and roll back to a previous compose version; each commit is attributed to the full name of the KNetraHub user who made the change.',
       'Watch service and task pages after deployment to verify replicas converge.',
       'Remove stops a stack\'s services but keeps its GitLab definition for history. Once a stack shows status Defined (in GitLab but not deployed), use Delete from GitLab to permanently remove the compose file too - this is irreversible and prompts for confirmation.'
     ],
@@ -252,7 +252,7 @@ const featureGuides = [
     summary: 'Configure appearance, integration defaults, authentication providers, alerts, and UI-backed system settings - all admin-only.',
     steps: [
       'Use Authentication settings to enable LDAP or OIDC from the UI.',
-      'Use Integrations to configure GitLab without touching container env; the status dot is only green when DockHub actually reaches it.',
+      'Use Integrations to configure GitLab without touching container env; the status dot is only green when KNetraHub actually reaches it.',
       'Use Alerts to add notification channels (Telegram/Teams/Webhook) and tune which conditions notify you, with custom message templates.',
       'Save provider settings to store database overrides instead of editing container env.',
       'Use env defaults when you want to delete a saved override and return to .env values.',
@@ -303,7 +303,7 @@ const workflows = [
     steps: [
       'Drain the worker or manager node from Nodes.',
       'Wait for tasks to move or stop according to service policy.',
-      'Complete host maintenance outside DockHub.',
+      'Complete host maintenance outside KNetraHub.',
       'Activate the node and confirm new tasks can be scheduled.'
     ]
   }
@@ -312,7 +312,7 @@ const workflows = [
 
 <template>
   <div>
-    <PageHeader title="User Manual" subtitle="Guides for using each DockHub feature and daily workflow" icon="i-lucide-book-open" />
+    <PageHeader title="User Manual" subtitle="Guides for using each KNetraHub feature and daily workflow" icon="i-lucide-book-open" />
 
     <div class="grid gap-6 xl:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
       <aside class="hidden xl:block">

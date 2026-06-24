@@ -166,7 +166,7 @@ function openEdit() {
     return
   }
   draft.value = data.value.compose
-  editMessage.value = `Update ${name} via DockHub`
+  editMessage.value = `Update ${name} via KNetraHub`
   editOpen.value = true
 }
 
@@ -181,7 +181,7 @@ async function redeploy() {
   try {
     const res: any = await $fetch('/api/stacks', {
       method: 'POST',
-      body: { name, compose: draft.value, message: editMessage.value || `Update ${name} via DockHub` }
+      body: { name, compose: draft.value, message: editMessage.value || `Update ${name} via KNetraHub` }
     })
     toast.add({ title: `Redeployed ${name}`, description: `${res.created?.length || 0} created, ${res.updated?.length || 0} updated`, color: 'primary', icon: 'i-lucide-rocket' })
     if (res.warnings?.length) toast.add({ title: 'Warnings', description: res.warnings.slice(0, 3).join('; '), color: 'warning' })
@@ -235,7 +235,7 @@ async function remove() {
   }
 }
 async function deleteFromGitlab() {
-  if (!confirm(`Permanently delete "${name}" from GitLab?\n\nThis removes its compose file and commit history from version control. It is not currently deployed, so nothing will be stopped - but this cannot be undone and the stack will no longer appear in DockHub.`)) return
+  if (!confirm(`Permanently delete "${name}" from GitLab?\n\nThis removes its compose file and commit history from version control. It is not currently deployed, so nothing will be stopped - but this cannot be undone and the stack will no longer appear in KNetraHub.`)) return
   try {
     await $fetch(`/api/stacks/${name}?git=true`, { method: 'DELETE' })
     toast.add({ title: `Deleted ${name} from GitLab`, color: 'primary' })

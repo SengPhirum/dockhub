@@ -1,8 +1,8 @@
 {
-  "name": "dockhub",
-  "version": "0.1.8",
+  "name": "knetrahub-portal",
+  "version": "0.1.1",
   "private": true,
-  "description": "DockHub - a convenient, GitLab-backed Docker Swarm management console",
+  "description": "KNetraHub - portal shell hosting KNetraHub-Docker (Docker Swarm management) and Module-Federation-loaded subsystem UIs",
   "author": "Seng Phirum <sengphirum143@gmail.com>",
   "license": "MIT",
   "type": "module",
@@ -17,9 +17,13 @@
     "start": "node .output/server/index.mjs",
     "build:docs": "NUXT_STATIC_DOCS=true nuxt generate",
     "preview:docs": "npx serve .output/public",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "dev:net-remote": "npm --prefix remotes/knetrahub-net run dev",
+    "dev:net-api": "npm --prefix services/knetrahub-net-api run dev",
+    "dev:mf": "concurrently -n portal,net-remote,net-api -c blue,green,yellow \"npm run dev\" \"npm run dev:net-remote\" \"npm run dev:net-api\""
   },
   "dependencies": {
+    "@module-federation/runtime": "^2.6.0",
     "@nuxt/icon": "^1.10.3",
     "@nuxt/ui": "^4.8.2",
     "@vite-pwa/nuxt": "^1.1.1",
@@ -38,6 +42,7 @@
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.111",
     "@types/dockerode": "^4.0.1",
-    "@types/pg": "^8.11.10"
+    "@types/pg": "^8.11.10",
+    "concurrently": "^10.0.3"
   }
 }

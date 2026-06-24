@@ -1,9 +1,15 @@
+import type { AppKey, AppTier, AppEntitlements } from '../../shared/utils/entitlements'
+
 interface SessionUser {
   id: string
   username: string
   displayName: string
   role: 'admin' | 'operator' | 'viewer'
   source: 'local' | 'ldap' | 'oidc'
+  /** Keycloak realm roles carried for reference/debugging (access uses `apps`). */
+  realmRoles: string[]
+  /** Resolved per-app access (tier per app, or null). Server is the source of truth. */
+  apps: AppEntitlements
 }
 
 export function useAuth() {
@@ -39,5 +45,26 @@ export function useAuth() {
     return rank[user.value.role] >= rank[min]
   }
 
-  return { user, fetchMe, login, logout, can }
+  /** The user's tier for a given app, or null if they have no access. */
+  const appTier = (app: AppKey): AppTier | null => user.value?.apps?.[app] ?? null
+
+  /** Does the user have access to an app, at least at `min` tier (default viewer)? */
+  const hasApp = (app: AppKey, min: AppTier = 'viewer') => tierAtLeast(appTier(app), min)
+
+  /** Apps the user can see, in registry order - used by the launcher and nav. */
+  const accessibleApps = computed(() => getModuleRegistry().filter((m) => m.enabled && hasApp(m.key as AppKey)))
+
+  /**
+   * Fine-grained permission check, for menu visibility/UX only (every API
+   * re-checks server-side). App-scoped permissions resolve against the per-app
+   * tier; portal/admin permissions fall back to the global role.
+   */
+  const hasPermission = (permission: Permission) => {
+    if (!user.value) return false
+    const app = appForPermission(permission)
+    if (app) return tierGrantsPermission(app, appTier(app), permission)
+    return roleHasPermission(user.value.role, permission)
+  }
+
+  return { user, fetchMe, login, logout, can, hasPermission, hasApp, appTier, accessibleApps }
 }
