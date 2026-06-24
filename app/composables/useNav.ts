@@ -17,7 +17,7 @@ export interface NavGroup {
 const DOCK_GROUPS: NavGroup[] = [
   {
     label: 'Overview',
-    items: [{ label: 'Dashboard', to: '/dock', icon: 'i-lucide-radar', permission: 'docker.view' }]
+    items: [{ label: 'Dashboard', to: '/docker', icon: 'i-lucide-radar', permission: 'docker.view' }]
   },
   {
     label: 'Fleet',
@@ -49,6 +49,43 @@ const DOCK_GROUPS: NavGroup[] = [
   }
 ]
 
+// The Network app's navigation (LibreNMS-style monitoring). Shown only while
+// the user is inside the Network app; items gated by the user's per-app net tier.
+const NET_GROUPS: NavGroup[] = [
+  {
+    label: 'Network',
+    items: [
+      { label: 'Overview', to: '/net',         icon: 'i-lucide-radar',          permission: 'net.view' },
+      { label: 'Devices',  to: '/net/devices', icon: 'i-lucide-router',         permission: 'net.view' },
+      { label: 'Alerts',   to: '/net/alerts',  icon: 'i-lucide-bell-ring',      permission: 'net.view' }
+    ]
+  }
+]
+
+// The Server app's navigation (Zabbix-style monitoring).
+const SERVER_GROUPS: NavGroup[] = [
+  {
+    label: 'Server',
+    items: [
+      { label: 'Overview', to: '/server',          icon: 'i-lucide-radar',          permission: 'server.view' },
+      { label: 'Hosts',    to: '/server/hosts',    icon: 'i-lucide-server',         permission: 'server.view' },
+      { label: 'Problems', to: '/server/problems', icon: 'i-lucide-triangle-alert', permission: 'server.view' }
+    ]
+  }
+]
+
+// The IP Management app's navigation.
+const IPMGT_GROUPS: NavGroup[] = [
+  {
+    label: 'IP Management',
+    items: [
+      { label: 'Overview',  to: '/ipmgt',           icon: 'i-lucide-radar',       permission: 'ipmgt.view' },
+      { label: 'Subnets',   to: '/ipmgt/subnets',   icon: 'i-lucide-network',     permission: 'ipmgt.view' },
+      { label: 'Addresses', to: '/ipmgt/addresses', icon: 'i-lucide-list-ordered',permission: 'ipmgt.view' }
+    ]
+  }
+]
+
 /**
  * Contextual navigation. The sidebar shows:
  *  - always: a link back to the app launcher;
@@ -65,9 +102,10 @@ export function useNav(): ComputedRef<NavGroup[]> {
       { label: '', items: [{ label: 'Apps', to: '/', icon: 'i-lucide-layout-grid' }] }
     ]
 
-    if (currentApp === 'docker') {
-      groups.push(...DOCK_GROUPS)
-    }
+    if (currentApp === 'docker') groups.push(...DOCK_GROUPS)
+    else if (currentApp === 'net') groups.push(...NET_GROUPS)
+    else if (currentApp === 'server') groups.push(...SERVER_GROUPS)
+    else if (currentApp === 'ipmgt') groups.push(...IPMGT_GROUPS)
 
     groups.push({
       label: 'Administration',

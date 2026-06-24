@@ -1,0 +1,62 @@
+<script setup lang="ts">
+const { hasApp } = useAuth()
+
+const { data: alerts, status, refresh } = useAsyncData('netAlerts', () => $fetch('/api/net/alerts'), {
+  server: false
+})
+
+onMounted(() => {
+  const interval = setInterval(refresh, 10000)
+  onUnmounted(() => clearInterval(interval))
+})
+</script>
+
+<template>
+  <div>
+    <PageHeader title="Alerts" subtitle="Active and historical alerting" icon="i-lucide-bell" />
+
+    <div v-if="!hasApp('net')" class="panel flex flex-col items-center gap-2 p-10 text-center">
+      <UIcon name="i-lucide-lock" class="size-6 text-faint" />
+      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Net.</p>
+    </div>
+
+    <div v-else class="space-y-6">
+      <div class="panel">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-(--color-muted)">
+            <thead class="bg-surface-2 text-xs uppercase text-faint border-b border-surface">
+              <tr>
+                <th class="px-4 py-3 font-medium">Status</th>
+                <th class="px-4 py-3 font-medium">Device</th>
+                <th class="px-4 py-3 font-medium">Rule</th>
+                <th class="px-4 py-3 font-medium">Message</th>
+                <th class="px-4 py-3 font-medium">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-surface">
+              <tr v-if="status === 'pending' && !alerts" class="animate-pulse">
+                <td colspan="5" class="px-4 py-8 text-center text-faint">Loading alerts...</td>
+              </tr>
+              <tr v-else-if="alerts?.length === 0">
+                <td colspan="5" class="px-4 py-8 text-center text-faint">No alerts.</td>
+              </tr>
+              <tr v-for="alert in alerts" :key="alert.id" class="hover:bg-surface-2/50 transition">
+                <td class="px-4 py-3">
+                  <UBadge size="xs" variant="soft" :color="alert.status === 'active' ? (alert.severity === 'critical' ? 'red' : 'orange') : 'green'">
+                    {{ alert.status }}
+                  </UBadge>
+                </td>
+                <td class="px-4 py-3">
+                  <NuxtLink :to="`/net/devices/${alert.device_id}`" class="font-medium text-foam hover:text-beacon transition">{{ alert.device_name }}</NuxtLink>
+                </td>
+                <td class="px-4 py-3 text-foam">{{ alert.rule_name }}</td>
+                <td class="px-4 py-3">{{ alert.message }}</td>
+                <td class="px-4 py-3 text-xs">{{ new Date(alert.timestamp).toLocaleString() }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

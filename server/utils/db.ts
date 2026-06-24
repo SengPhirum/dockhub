@@ -151,5 +151,156 @@ async function runMigrations(): Promise<void> {
     );
 
     CREATE INDEX IF NOT EXISTS idx_alert_events_fired_at ON alert_events (fired_at DESC);
+
+    -- Network Module (LibreNMS MVP)
+    CREATE TABLE IF NOT EXISTS net_devices (
+      id TEXT PRIMARY KEY,
+      hostname TEXT NOT NULL,
+      ip TEXT NOT NULL,
+      type TEXT,
+      vendor TEXT,
+      os TEXT,
+      status TEXT,
+      uptime TEXT,
+      snmp_version TEXT,
+      snmp_community TEXT,
+      poll_method TEXT DEFAULT 'ping',
+      category TEXT DEFAULT 'network',
+      sys_name TEXT,
+      sys_descr TEXT,
+      sys_object_id TEXT,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS net_interfaces (
+      id TEXT PRIMARY KEY,
+      device_id TEXT NOT NULL REFERENCES net_devices(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      status TEXT,
+      speed TEXT,
+      in_traffic TEXT,
+      out_traffic TEXT,
+      mac_address TEXT,
+      mtu TEXT,
+      admin_status TEXT,
+      oper_status TEXT,
+      type TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS net_sensors (
+      id TEXT PRIMARY KEY,
+      device_id TEXT NOT NULL REFERENCES net_devices(id) ON DELETE CASCADE,
+      sensor_type TEXT NOT NULL,
+      name TEXT NOT NULL,
+      current_value REAL,
+      unit TEXT,
+      limit_high REAL,
+      limit_low REAL
+    );
+
+    CREATE TABLE IF NOT EXISTS net_alert_rules (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      metric TEXT NOT NULL,
+      condition TEXT NOT NULL,
+      threshold TEXT NOT NULL,
+      severity TEXT DEFAULT 'warning',
+      enabled BOOLEAN DEFAULT true
+    );
+
+    CREATE TABLE IF NOT EXISTS net_alerts (
+      id TEXT PRIMARY KEY,
+      device_id TEXT NOT NULL REFERENCES net_devices(id) ON DELETE CASCADE,
+      rule_id TEXT REFERENCES net_alert_rules(id) ON DELETE SET NULL,
+      message TEXT NOT NULL,
+      severity TEXT NOT NULL,
+      status TEXT DEFAULT 'active',
+      timestamp TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS net_syslog (
+      id TEXT PRIMARY KEY,
+      device_id TEXT REFERENCES net_devices(id) ON DELETE CASCADE,
+      facility TEXT,
+      severity TEXT,
+      program TEXT,
+      message TEXT NOT NULL,
+      timestamp TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS net_groups (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS net_device_groups (
+      device_id TEXT NOT NULL REFERENCES net_devices(id) ON DELETE CASCADE,
+      group_id TEXT NOT NULL REFERENCES net_groups(id) ON DELETE CASCADE,
+      PRIMARY KEY (device_id, group_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS net_backups (
+      id TEXT PRIMARY KEY,
+      device_id TEXT NOT NULL REFERENCES net_devices(id) ON DELETE CASCADE,
+      config_text TEXT NOT NULL,
+      timestamp TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS net_flows (
+      id TEXT PRIMARY KEY,
+      device_id TEXT NOT NULL REFERENCES net_devices(id) ON DELETE CASCADE,
+      protocol TEXT NOT NULL,
+      src_ip TEXT NOT NULL,
+      dst_ip TEXT NOT NULL,
+      src_port INTEGER,
+      dst_port INTEGER,
+      bytes INTEGER NOT NULL,
+      packets INTEGER NOT NULL,
+      timestamp TEXT NOT NULL
+    );
+
+    -- Server Module (Zabbix MVP)
+    CREATE TABLE IF NOT EXISTS server_hosts (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      ip TEXT,
+      os TEXT,
+      status TEXT,
+      cpu TEXT,
+      memory TEXT,
+      uptime TEXT,
+      agent TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS server_problems (
+      id TEXT PRIMARY KEY,
+      host_id TEXT NOT NULL REFERENCES server_hosts(id) ON DELETE CASCADE,
+      trigger TEXT NOT NULL,
+      severity TEXT,
+      fired_at TEXT NOT NULL,
+      duration TEXT,
+      ack BOOLEAN DEFAULT false
+    );
+
+    -- IPAM Module (phpIPAM MVP)
+    CREATE TABLE IF NOT EXISTS ipmgt_subnets (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      network TEXT NOT NULL,
+      vlan INTEGER,
+      gateway TEXT,
+      usage INTEGER DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS ipmgt_ips (
+      id TEXT PRIMARY KEY,
+      subnet_id TEXT NOT NULL REFERENCES ipmgt_subnets(id) ON DELETE CASCADE,
+      ip TEXT NOT NULL,
+      hostname TEXT,
+      mac TEXT,
+      description TEXT,
+      state TEXT NOT NULL DEFAULT 'Available'
+    );
   `)
 }

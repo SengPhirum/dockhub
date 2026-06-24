@@ -1,21 +1,19 @@
 import type { ModuleDefinition } from '../../shared/types/module'
 
 /**
- * KNetraHub module registry - the apps shown on the home launcher. `docker`
- * ("Dock") is served in-process by this app (its dashboard lives at /dock and
- * the existing Docker Swarm pages keep their original paths); net/server/ipmgt
- * are loaded as remotes via Module Federation. A new app only needs a registry
- * entry plus its access wiring, not bespoke nav code.
+ * KNetraHub module registry - the apps shown on the home launcher. Every app
+ * is now served in-process by this app (SPA pages under app/pages + Nitro API
+ * routes); there are no Module-Federation remotes anymore. A new app only
+ * needs a registry entry plus its access wiring (permission + nav group), not
+ * bespoke nav code.
  */
 export function getModuleRegistry(): ModuleDefinition[] {
-  const config = useRuntimeConfig().public.knetrahub
-
   const modules: ModuleDefinition[] = [
     {
       key: 'docker',
-      name: 'Dock',
+      name: 'Docker',
       description: 'Docker Swarm management - nodes, services, stacks, tasks, and data resources.',
-      routePath: '/dock',
+      routePath: '/docker',
       icon: 'i-lucide-container',
       permission: 'docker.view',
       type: 'local',
@@ -24,51 +22,36 @@ export function getModuleRegistry(): ModuleDefinition[] {
     },
     {
       key: 'net',
-      name: 'KNetraHub-Net',
-      description: 'Network monitoring - device inventory, ping/SNMP checks, bandwidth, and alerts.',
+      name: 'Network',
+      description: 'Network monitoring - device inventory, ping/SNMP checks, interface bandwidth, and alerts.',
       routePath: '/net',
       icon: 'i-lucide-network',
       permission: 'net.view',
-      type: 'remote',
-      remoteName: 'knetrahub_net',
-      exposedModule: './NetApp',
-      remoteEntryUrl: config.netRemoteEntry,
-      apiBaseUrl: config.netApiBase,
+      type: 'local',
       enabled: true,
-      order: 20,
-      versionCompat: '^1.0.0'
+      order: 20
     },
     {
       key: 'server',
-      name: 'KNetraHub-Server',
-      description: 'Server monitoring - CPU/memory/disk metrics, service status, and agent heartbeats.',
+      name: 'Server',
+      description: 'Server monitoring - host inventory, CPU/memory/disk metrics, triggers, and problems.',
       routePath: '/server',
       icon: 'i-lucide-server-cog',
       permission: 'server.view',
-      type: 'remote',
-      remoteName: 'knetrahub_server',
-      exposedModule: './ServerApp',
-      remoteEntryUrl: config.serverRemoteEntry,
-      apiBaseUrl: config.serverApiBase,
+      type: 'local',
       enabled: true,
-      order: 30,
-      versionCompat: '^1.0.0'
+      order: 30
     },
     {
       key: 'ipmgt',
-      name: 'KNetraHub-IPMgt',
-      description: 'IT asset and IP address management - ownership, warranty, and lifecycle tracking.',
+      name: 'IP Management',
+      description: 'IP address management - subnets, address inventory, assignment, and utilization.',
       routePath: '/ipmgt',
       icon: 'i-lucide-id-card',
       permission: 'ipmgt.view',
-      type: 'remote',
-      remoteName: 'knetrahub_ipmgt',
-      exposedModule: './IPMgtApp',
-      remoteEntryUrl: config.ipmgtRemoteEntry,
-      apiBaseUrl: config.ipmgtApiBase,
+      type: 'local',
       enabled: true,
-      order: 40,
-      versionCompat: '^1.0.0'
+      order: 40
     }
   ]
   return modules.sort((a, b) => a.order - b.order)

@@ -149,19 +149,7 @@ export default defineNuxtConfig({
     // --- Exposed to the client (safe values only) ---
     public: {
       appName: process.env.NUXT_PUBLIC_APP_NAME || 'KNetraHub',
-      staticDocs: isDocsBuild,
-      // KNetraHub subsystem modules - remote entry URLs and API bases for
-      // Module Federation remotes (server/utils on the portal never call
-      // these directly; only the browser does). Safe defaults point at the
-      // documented local dev ports so `npm run dev:mf` works out of the box.
-      knetrahub: {
-        netRemoteEntry: process.env.NUXT_PUBLIC_KNETRAHUB_NET_REMOTE_ENTRY || 'http://localhost:3101/remoteEntry.js',
-        netApiBase: process.env.NUXT_PUBLIC_KNETRAHUB_NET_API_BASE || 'http://localhost:4101/api',
-        serverRemoteEntry: process.env.NUXT_PUBLIC_KNETRAHUB_SERVER_REMOTE_ENTRY || 'http://localhost:3102/remoteEntry.js',
-        serverApiBase: process.env.NUXT_PUBLIC_KNETRAHUB_SERVER_API_BASE || 'http://localhost:4102/api',
-        ipmgtRemoteEntry: process.env.NUXT_PUBLIC_KNETRAHUB_IPMGT_REMOTE_ENTRY || 'http://localhost:3103/remoteEntry.js',
-        ipmgtApiBase: process.env.NUXT_PUBLIC_KNETRAHUB_IPMGT_API_BASE || 'http://localhost:4103/api'
-      }
+      staticDocs: isDocsBuild
     }
   },
 

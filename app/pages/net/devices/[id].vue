@@ -1,0 +1,228 @@
+<script setup lang="ts">
+const route = useRoute()
+const { hasApp } = useAuth()
+
+const { data: device, status, refresh } = useAsyncData(`netDevice-${route.params.id}`, () => $fetch(`/api/net/devices/${route.params.id}`))
+const { data: backups } = useAsyncData(`netDeviceBackups-${route.params.id}`, () => $fetch(`/api/net/devices/${route.params.id}/backups`))
+
+const activeTab = ref('overview')
+const tabs = [
+  { id: 'overview', label: 'Overview', icon: 'i-lucide-activity' },
+  { id: 'ports', label: 'Ports', icon: 'i-lucide-ethernet-port' },
+  { id: 'sensors', label: 'Sensors', icon: 'i-lucide-thermometer' },
+  { id: 'backups', label: 'Backups', icon: 'i-lucide-history' },
+  { id: 'settings', label: 'Settings', icon: 'i-lucide-settings' }
+]
+
+const settingsForm = reactive({
+  hostname: '',
+  ip: '',
+  poll_method: '',
+  snmp_version: '',
+  snmp_community: '',
+  category: ''
+})
+
+watch(device, (val) => {
+  if (val) {
+    Object.assign(settingsForm, {
+      hostname: val.hostname,
+      ip: val.ip,
+      poll_method: val.poll_method,
+      snmp_version: val.snmp_version,
+      snmp_community: val.snmp_community,
+      category: val.category
+    })
+  }
+}, { immediate: true })
+
+async function saveSettings() {
+  await $fetch(`/api/net/devices/${route.params.id}`, {
+    method: 'PUT',
+    body: settingsForm
+  })
+  refresh()
+}
+</script>
+
+<template>
+  <div>
+    <PageHeader :title="device?.hostname || 'Loading...'" subtitle="Device Management" icon="i-lucide-hard-drive">
+      <template #actions>
+        <NuxtLink to="/net/devices" class="text-sm font-medium text-(--color-muted) hover:text-foam flex items-center gap-1">
+          <UIcon name="i-lucide-arrow-left" class="size-4" /> Back to Inventory
+        </NuxtLink>
+      </template>
+    </PageHeader>
+
+    <div v-if="!hasApp('net')" class="panel flex flex-col items-center gap-2 p-10 text-center">
+      <UIcon name="i-lucide-lock" class="size-6 text-faint" />
+      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Net.</p>
+    </div>
+
+    <div v-else-if="device" class="space-y-6">
+      
+      <!-- Device Header Card -->
+      <div class="panel p-5 grid grid-cols-2 md:grid-cols-5 gap-6 border-b-4 border-b-surface" :class="device.status === 'up' ? 'border-b-green-500' : 'border-b-red-500'">
+        <div>
+          <span class="text-xs font-medium uppercase text-(--color-muted)">IP Address</span>
+          <p class="mt-1 font-mono text-sm text-foam">{{ device.ip }}</p>
+        </div>
+        <div>
+          <span class="text-xs font-medium uppercase text-(--color-muted)">Vendor & OS</span>
+          <p class="mt-1 text-sm text-foam">{{ device.vendor }} / {{ device.os }}</p>
+        </div>
+        <div class="col-span-2">
+          <span class="text-xs font-medium uppercase text-(--color-muted)">System Name</span>
+          <p class="mt-1 text-sm text-foam truncate" :title="device.sys_descr">{{ device.sys_name || 'N/A' }}</p>
+        </div>
+        <div>
+          <span class="text-xs font-medium uppercase text-(--color-muted)">Uptime</span>
+          <p class="mt-1 text-sm text-foam">{{ device.uptime }}</p>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex border-b border-surface">
+        <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id"
+          class="px-4 py-2.5 text-sm font-medium transition-colors border-b-2 flex items-center gap-2"
+          :class="activeTab === tab.id ? 'border-primary-500 text-foam' : 'border-transparent text-(--color-muted) hover:text-foam'">
+          <UIcon :name="tab.icon" class="size-4" />
+          {{ tab.label }}
+        </button>
+      </div>
+
+      <!-- Tab Content: Overview -->
+      <div v-if="activeTab === 'overview'" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="panel p-5">
+            <h3 class="font-medium text-foam mb-3">System Information</h3>
+            <dl class="space-y-2 text-sm">
+              <div class="flex justify-between border-b border-surface pb-1"><dt class="text-faint">ObjectID</dt><dd class="text-foam font-mono">{{ device.sys_object_id || 'Unknown' }}</dd></div>
+              <div class="flex justify-between border-b border-surface pb-1"><dt class="text-faint">Category</dt><dd class="text-foam capitalize">{{ device.category }}</dd></div>
+              <div class="flex justify-between border-b border-surface pb-1"><dt class="text-faint">Poll Method</dt><dd class="text-foam uppercase">{{ device.poll_method }}</dd></div>
+              <div class="flex justify-between pb-1"><dt class="text-faint">Description</dt><dd class="text-foam truncate max-w-xs" :title="device.sys_descr">{{ device.sys_descr || 'Unknown' }}</dd></div>
+            </dl>
+          </div>
+          <div class="panel p-5 flex items-center justify-center">
+            <p class="text-faint text-sm italic">Historical ping latency graphs will appear here.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Ports -->
+      <div v-if="activeTab === 'ports'" class="panel">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-(--color-muted)">
+            <thead class="bg-surface-2 text-xs uppercase text-faint">
+              <tr>
+                <th class="px-4 py-3 font-medium">Status</th>
+                <th class="px-4 py-3 font-medium">Port</th>
+                <th class="px-4 py-3 font-medium">MAC / Type</th>
+                <th class="px-4 py-3 font-medium">Speed</th>
+                <th class="px-4 py-3 font-medium">In Traffic</th>
+                <th class="px-4 py-3 font-medium">Out Traffic</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-surface">
+              <tr v-if="!device.interfaces?.length">
+                <td colspan="6" class="px-4 py-8 text-center text-faint">No interfaces discovered.</td>
+              </tr>
+              <tr v-for="iface in device.interfaces" :key="iface.id" class="hover:bg-surface-2/50 transition">
+                <td class="px-4 py-3">
+                  <div class="flex flex-col gap-1">
+                    <span class="flex items-center gap-1.5 text-xs"><span class="size-2 rounded-full" :class="iface.admin_status === 'up' ? 'bg-green-500' : 'bg-red-500'"></span> Admin</span>
+                    <span class="flex items-center gap-1.5 text-xs"><span class="size-2 rounded-full" :class="iface.oper_status === 'up' ? 'bg-green-500' : 'bg-red-500'"></span> Oper</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3 font-mono text-foam font-medium">{{ iface.name }}</td>
+                <td class="px-4 py-3 text-xs">
+                  <div class="font-mono text-foam">{{ iface.mac_address || 'N/A' }}</div>
+                  <div class="text-faint">{{ iface.type }} / MTU: {{ iface.mtu }}</div>
+                </td>
+                <td class="px-4 py-3">{{ iface.speed }}</td>
+                <td class="px-4 py-3 text-green-400">{{ iface.in_traffic }}</td>
+                <td class="px-4 py-3 text-blue-400">{{ iface.out_traffic }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab Content: Sensors -->
+      <div v-if="activeTab === 'sensors'" class="space-y-6">
+        <div v-if="!device.sensors?.length" class="panel p-8 text-center text-faint">
+          No hardware sensors discovered for this device.
+        </div>
+        <div v-else class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div v-for="sensor in device.sensors" :key="sensor.id" class="panel p-4 flex flex-col justify-between">
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-xs text-(--color-muted) font-medium uppercase">{{ sensor.sensor_type }}</span>
+              <UIcon :name="sensor.sensor_type === 'temperature' ? 'i-lucide-thermometer' : sensor.sensor_type === 'fan' ? 'i-lucide-fan' : 'i-lucide-zap'" class="size-4 text-faint" />
+            </div>
+            <div class="text-sm text-foam mb-3 truncate" :title="sensor.name">{{ sensor.name }}</div>
+            <div class="flex items-end gap-1">
+              <span class="text-2xl font-display font-semibold" :class="sensor.current_value > sensor.limit_high ? 'text-red-500' : 'text-green-500'">{{ sensor.current_value }}</span>
+              <span class="text-xs text-faint mb-1">{{ sensor.unit }}</span>
+            </div>
+            <div class="w-full bg-surface-2 h-1 mt-3 rounded overflow-hidden">
+              <div class="h-full bg-primary-500" :style="{ width: Math.max(0, Math.min(((sensor.current_value / (sensor.limit_high || 1)) * 100) || 0, 100)) + '%' }"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Backups -->
+      <div v-if="activeTab === 'backups'" class="space-y-6">
+        <div v-if="!backups?.length" class="panel p-8 text-center text-faint">
+          No backups discovered for this device.
+        </div>
+        <div v-else class="space-y-4">
+          <div v-for="backup in backups" :key="backup.id" class="panel p-5">
+            <div class="flex justify-between mb-3 border-b border-surface pb-3">
+              <div>
+                <div class="font-medium text-foam">Configuration Backup</div>
+                <div class="text-xs text-faint mt-1">{{ new Date(backup.timestamp).toLocaleString() }}</div>
+              </div>
+              <UButton size="xs" variant="ghost" icon="i-lucide-download">Download</UButton>
+            </div>
+            <pre class="text-xs font-mono text-(--color-muted) whitespace-pre-wrap max-h-64 overflow-y-auto bg-surface-2 p-3 rounded">{{ backup.config_text }}</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Settings -->
+      <div v-if="activeTab === 'settings'" class="panel p-6 max-w-2xl">
+        <h3 class="text-lg font-semibold text-foam mb-6">Device Configuration</h3>
+        <div class="space-y-4">
+          <UFormField label="Hostname">
+            <UInput v-model="settingsForm.hostname" class="w-full" />
+          </UFormField>
+          <UFormField label="IP Address">
+            <UInput v-model="settingsForm.ip" class="w-full" />
+          </UFormField>
+          <UFormField label="Category">
+            <USelect v-model="settingsForm.category" :options="[{value:'network', label:'Network'}, {value:'server', label:'Server'}, {value:'storage', label:'Storage'}, {value:'iot', label:'IoT'}, {value:'ping-only', label:'Ping Only'}]" class="w-full" />
+          </UFormField>
+          <div class="grid grid-cols-2 gap-4 pt-4 border-t border-surface">
+            <UFormField label="Polling Method">
+              <USelect v-model="settingsForm.poll_method" :options="[{value:'snmp', label:'SNMP'}, {value:'ping', label:'Ping Only'}]" class="w-full" />
+            </UFormField>
+            <template v-if="settingsForm.poll_method === 'snmp'">
+              <UFormField label="SNMP Version">
+                <USelect v-model="settingsForm.snmp_version" :options="[{value:'v1', label:'v1'}, {value:'v2c', label:'v2c'}, {value:'v3', label:'v3'}]" class="w-full" />
+              </UFormField>
+              <UFormField label="Community" class="col-span-2">
+                <UInput v-model="settingsForm.snmp_community" type="password" class="w-full" />
+              </UFormField>
+            </template>
+          </div>
+          <div class="pt-6 flex justify-end">
+            <UButton color="primary" @click="saveSettings">Save Changes</UButton>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</template>
