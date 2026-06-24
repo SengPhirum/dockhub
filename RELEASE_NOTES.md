@@ -1,21 +1,23 @@
-# DockHub v0.1.8
+# DockHub v0.1.1
 
-Date: 2026-06-23 UTC
+Date: 2026-06-24 UTC
 
 ## Docker Images
 
-- `registry.kdsb.com.kh/dockhub/app:0.1.8`
+- `registry.kdsb.com.kh/dockhub/app:0.1.1`
 - `registry.kdsb.com.kh/dockhub/app:latest`
-- `registry.kdsb.com.kh/dockhub/agent:0.1.8`
+- `registry.kdsb.com.kh/dockhub/agent:0.1.1`
 - `registry.kdsb.com.kh/dockhub/agent:latest`
 
 ## Source
 
-- Commit: `e8a09df`
+- Commit: `e146779`
 - Previous tag: none
 
 ## Changes
 
+- Update (e146779)
+- Add GitLab UI config, alerting, stack GitLab deletion, and icon branding (c1061f4)
 - Enhance dashboard and dev swarm (e8a09df)
 - Add full service editing, autoredeploy, appearance settings, and fix PWA (392598f)
 - Enhance UI (0cb4a52)
@@ -45,45 +47,38 @@ The working tree had uncommitted changes before this release script ran.
 ```text
  M .env.example
  M README.md
- M RELEASE_NOTES.md
- M app/app.vue
+ M agent/Dockerfile
+ M agent/index.mjs
+ M app/assets/css/main.css
+ M app/components/DataState.vue
+ M app/components/DockHubLogo.vue
+ M app/components/SidebarNav.vue
  M app/composables/useAppearance.ts
+ M app/composables/useAuth.ts
+ M app/composables/useNav.ts
  M app/pages/docs/configuration.vue
- M app/pages/docs/index.vue
  M app/pages/docs/manual.vue
  M app/pages/documentation.vue
- M app/pages/services/[id].vue
- M app/pages/services/index.vue
+ M app/pages/index.vue
+ M app/pages/login.vue
  M app/pages/settings/index.vue
  M app/pages/stacks/[name].vue
  M app/pages/stacks/index.vue
  M nuxt.config.ts
- M release-notes/v0.1.8.md
- M server/api/gitlab/status.get.ts
- M server/api/services/[id].get.ts
- M server/api/services/[id]/image.post.ts
- M server/api/services/[id]/redeploy.post.ts
- M server/api/services/[id]/scale.post.ts
- M server/api/services/usage.get.ts
- M server/api/settings/appearance.put.ts
- M server/api/stacks/[name]/index.delete.ts
- M server/api/stacks/[name]/index.get.ts
- M server/api/stacks/[name]/rollback.post.ts
- M server/api/stacks/index.get.ts
- M server/api/stacks/index.post.ts
+ M package-lock.json
+ M package.json
  M server/utils/appearanceSettings.ts
- M server/utils/authSettings.ts
- M server/utils/db.ts
- M server/utils/gitlab.ts
- M server/utils/store.ts
-?? server/api/alerts/
-?? server/api/gitlab/settings.delete.ts
-?? server/api/gitlab/settings.put.ts
-?? server/plugins/alerts.ts
-?? server/routes/
-?? server/utils/alertChannels.ts
-?? server/utils/alertNotify.ts
-?? server/utils/alertRules.ts
-?? server/utils/gitlabSettings.ts
-?? server/utils/secretCrypto.ts
+ M server/utils/auth.ts
+?? agent/collectors/
+?? app/components/RemoteModuleLoader.vue
+?? app/pages/ipmgt.vue
+?? app/pages/net.vue
+?? app/pages/server.vue
+?? app/plugins/
+?? app/utils/moduleRegistry.ts
+?? remotes/
+?? server/api/auth/subsystem-token.get.ts
+?? server/api/modules/
+?? services/
+?? shared/
 ```
