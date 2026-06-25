@@ -6,7 +6,7 @@ export const STACK_LABEL = 'com.docker.stack.namespace'
 /* ----------------------------------------------------------------------------
  * Reading: group existing swarm objects into "stacks" by namespace label.
  * Docker's Engine API has no native stack object — `docker stack deploy` is a
- * client convention built on labels. DockHub follows the same convention.
+ * client convention built on labels. KNetraHub follows the same convention.
  * --------------------------------------------------------------------------*/
 
 export interface StackSummary {

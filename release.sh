@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${ROOT_DIR}"
 
 REGISTRY="${REGISTRY:-registry.kdsb.com.kh}"
-IMAGE_NAME="${IMAGE_NAME:-dockhub/app}"
+IMAGE_NAME="${IMAGE_NAME:-knetrahub/app}"
 AGENT_IMAGE_NAME="${AGENT_IMAGE_NAME:-}"
 VERSION_TAG_PREFIX="${VERSION_TAG_PREFIX:-}"
 RELEASE_NOTES_DIR="${RELEASE_NOTES_DIR:-release-notes}"
@@ -20,14 +20,14 @@ usage() {
   cat <<'EOF'
 Usage: ./release.sh [options]
 
-Build and publish DockHub to the local Docker registry.
+Build and publish KNetraHub to the local Docker registry.
 
 Default behavior:
   - bump package version by patch
   - generate release notes
   - build the app and agent Docker images
-  - push registry.kdsb.com.kh/dockhub/app:<version> and :latest
-  - push registry.kdsb.com.kh/dockhub/agent:<version> and :latest
+  - push registry.kdsb.com.kh/knetrahub/app:<version> and :latest
+  - push registry.kdsb.com.kh/knetrahub/agent:<version> and :latest
 
 Options:
   --patch                 Bump patch version (default)
@@ -38,15 +38,15 @@ Options:
   --no-bump               Keep the current package version for test publishes
   --no-push               Build and tag locally without pushing
   --registry host         Docker registry host (default: registry.kdsb.com.kh)
-  --image name            Image name inside the registry (default: dockhub/app)
-  --agent-image name      Agent image name inside the registry (default: dockhub/agent)
+  --image name            Image name inside the registry (default: knetrahub/app)
+  --agent-image name      Agent image name inside the registry (default: knetrahub/agent)
   --tag-prefix value      Prefix the version Docker tag, e.g. "v" for :v1.2.3
   -h, --help              Show this help
 
 Environment overrides:
   REGISTRY=registry.kdsb.com.kh
-  IMAGE_NAME=dockhub/app
-  AGENT_IMAGE_NAME=dockhub/agent
+  IMAGE_NAME=knetrahub/app
+  AGENT_IMAGE_NAME=knetrahub/agent
   VERSION_TAG_PREFIX=
   RELEASE_NOTES_DIR=release-notes
   LATEST_RELEASE_NOTES=RELEASE_NOTES.md
@@ -293,7 +293,7 @@ mkdir -p "${RELEASE_NOTES_DIR}"
 release_notes_file="${RELEASE_NOTES_DIR}/v${next_version}.md"
 
 {
-  printf '# DockHub v%s\n\n' "${next_version}"
+  printf '# KNetraHub v%s\n\n' "${next_version}"
   printf 'Date: %s UTC\n\n' "${release_date}"
   printf '## Docker Images\n\n'
   printf -- '- `%s`\n' "${version_image}"

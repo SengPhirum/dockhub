@@ -55,7 +55,7 @@ export async function assertSwarm() {
     if (!info.Swarm.ControlAvailable) {
       throw createError({
         statusCode: 409,
-        statusMessage: 'Connected node is a worker. DockHub must connect to a manager node.'
+        statusMessage: 'Connected node is a worker. KNetraHub must connect to a manager node.'
       })
     }
     return info

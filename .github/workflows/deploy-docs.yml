@@ -1,4 +1,4 @@
-# Deploy DockHub static documentation to GitHub Pages
+# Deploy KNetraHub static documentation to GitHub Pages
 #
 # Triggered on every push to main, or manually via workflow_dispatch.
 # Builds ONLY the /documentation page as fully static HTML — no Docker or
@@ -68,7 +68,7 @@ jobs:
           # ── CHANGE THIS ───────────────────────────────────────────────────
           # Set to /  if you use a custom domain or username.github.io site
           # Set to /<repo-name>/  for a project site (github.io/<repo-name>)
-          NUXT_DOCS_BASE_URL: '/dockhub/'
+          NUXT_DOCS_BASE_URL: '/knetrahub/'
           # ─────────────────────────────────────────────────────────────────
           # Dummy values so Nuxt runtime-config validation passes at build time
           NUXT_JWT_SECRET: 'docs-build-placeholder'

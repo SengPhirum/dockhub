@@ -8,7 +8,7 @@ PRUNE_PID=""
 AGENT_PID=""
 
 log() {
-  printf '[dockhub-swarm-dev] %s\n' "$*"
+  printf '[knetrahub-swarm-dev] %s\n' "$*"
 }
 
 cleanup() {
@@ -127,26 +127,28 @@ install_node_modules() {
     return 1
   fi
 
-  cache_file="/workspace/node_modules/.dockhub-lock-sha"
+  cache_file="/workspace/node_modules/.knetrahub-lock-sha"
   install_flags="${NPM_INSTALL_FLAGS:-}"
 
-  if [ -f package-lock.json ]; then
-    lock_hash="$( { sha256sum package.json package-lock.json; printf '%s\n' "${install_flags}"; } | sha256sum | awk '{ print $1 }')"
+  if [ -f pnpm-lock.yaml ]; then
+    lock_hash="$( { sha256sum package.json pnpm-lock.yaml; printf '%s\n' "${install_flags}"; } | sha256sum | awk '{ print $1 }')"
     if [ ! -f "${cache_file}" ] || [ "$(cat "${cache_file}")" != "${lock_hash}" ]; then
-      log "Installing npm dependencies into the container node_modules volume"
-      npm ci ${install_flags}
+      log "Installing pnpm dependencies into the container node_modules volume"
+      corepack enable pnpm
+      pnpm install --frozen-lockfile ${install_flags}
       printf '%s\n' "${lock_hash}" > "${cache_file}"
     else
-      log "npm dependencies are already up to date"
+      log "pnpm dependencies are already up to date"
     fi
   else
     lock_hash="$( { sha256sum package.json; printf '%s\n' "${install_flags}"; } | sha256sum | awk '{ print $1 }')"
     if [ ! -f "${cache_file}" ] || [ "$(cat "${cache_file}")" != "${lock_hash}" ]; then
-      log "Installing npm dependencies into the container node_modules volume"
-      npm install ${install_flags}
+      log "Installing pnpm dependencies into the container node_modules volume"
+      corepack enable pnpm
+      pnpm install ${install_flags}
       printf '%s\n' "${lock_hash}" > "${cache_file}"
     else
-      log "npm dependencies are already up to date"
+      log "pnpm dependencies are already up to date"
     fi
   fi
 }
@@ -155,14 +157,14 @@ run_agent() {
   # The nested dockerd here can't reliably pull images (its CA trust store
   # doesn't carry whatever corporate root the host's real Docker is
   # configured with), so dev runs the agent script directly instead of
-  # building/running the dockhub-agent image like prod does.
+  # building/running the knetrahub-agent image like prod does.
   if ! command -v node >/dev/null 2>&1; then
-    log "Installing Node.js for the dockhub-agent"
-    apk add --no-cache nodejs >/dev/null 2>&1 || { log "Could not install Node.js; skipping dockhub-agent on this node"; return 0; }
+    log "Installing Node.js for the knetrahub-agent"
+    apk add --no-cache nodejs >/dev/null 2>&1 || { log "Could not install Node.js; skipping knetrahub-agent on this node"; return 0; }
   fi
 
-  log "Starting dockhub-agent (reports this node's usage to ${DOCKHUB_AGENT_URL:-http://swarm-manager:3000/api/agent/report})"
-  DOCKHUB_AGENT_URL="${DOCKHUB_AGENT_URL:-http://swarm-manager:3000/api/agent/report}" \
+  log "Starting knetrahub-agent (reports this node's usage to ${KNETRAHUB_AGENT_URL:-http://swarm-manager:3000/api/agent/report})"
+  KNETRAHUB_AGENT_URL="${KNETRAHUB_AGENT_URL:-http://swarm-manager:3000/api/agent/report}" \
     node /agent/index.mjs &
   AGENT_PID="$!"
 }
@@ -183,8 +185,8 @@ run_app() {
   export VITE_USE_POLLING="${VITE_USE_POLLING:-true}"
   export WATCHPACK_POLLING="${WATCHPACK_POLLING:-true}"
 
-  log "Starting DockHub with npm run dev on ${NUXT_HOST}:${NUXT_PORT}"
-  npm run dev -- --host "${NUXT_HOST}" --port "${NUXT_PORT}" &
+  log "Starting KNetraHub with pnpm run dev on ${NUXT_HOST}:${NUXT_PORT}"
+  pnpm run dev --host "${NUXT_HOST}" --port "${NUXT_PORT}" &
   APP_PID="$!"
   wait "${APP_PID}"
 }
@@ -203,7 +205,7 @@ run_manager() {
 
   run_agent
 
-  if [ "${DOCKHUB_RUN_APP:-true}" = "true" ]; then
+  if [ "${KNETRAHUB_RUN_APP:-true}" = "true" ]; then
     run_app
   else
     wait "${DOCKERD_PID}"

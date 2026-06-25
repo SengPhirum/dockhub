@@ -2,10 +2,10 @@ export function buildOpenApiSpec() {
   return {
     openapi: '3.0.3',
     info: {
-      title: 'DockHub API',
+      title: 'KNetraHub API',
       version: '1.0.0',
       description: [
-        'REST API for DockHub — Docker Swarm management console.',
+        'REST API for KNetraHub — Docker Swarm management console.',
         '',
         '## Authentication',
         'All endpoints (except `/auth/login` and `/auth/providers`) require authentication.',
@@ -20,7 +20,7 @@ export function buildOpenApiSpec() {
         '| `admin` | Full access including users, registries, and settings |'
       ].join('\n')
     },
-    servers: [{ url: '/api', description: 'DockHub API' }],
+    servers: [{ url: '/api', description: 'KNetraHub API' }],
     components: {
       securitySchemes: {
         ApiToken: {

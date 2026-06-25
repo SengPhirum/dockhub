@@ -78,7 +78,7 @@ const ldapGuide = {
   ],
   fields: [
     { name: 'Server URL', detail: 'Prefer ldaps:// on port 636 when available. ldap:// on port 389 depends on your directory policy.' },
-    { name: 'Bind DN', detail: 'Use a service account DN, for example cn=dockhub,ou=service,dc=example,dc=com.' },
+    { name: 'Bind DN', detail: 'Use a service account DN, for example cn=knetrahub,ou=service,dc=example,dc=com.' },
     { name: 'Search base', detail: 'Point this at the subtree containing user accounts, not the whole directory when you can avoid it.' },
     { name: 'Search filter', detail: 'Active Directory often uses (sAMAccountName={{username}}); OpenLDAP commonly uses (uid={{username}}).' },
     { name: 'Groups', detail: 'KNetraHub checks the user memberOf values against the admin and operator group fields.' }

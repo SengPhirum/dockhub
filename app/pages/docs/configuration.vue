@@ -235,15 +235,15 @@ const configurationSections = [
         summary: 'Use a confidential OpenID Connect client in a realm dedicated to infrastructure access.',
         options: [
           ['Issuer', 'https://keycloak.example.com/realms/infrastructure'],
-          ['Client ID', 'dockhub'],
-          ['Redirect URI', 'https://dockhub.example.com/api/auth/oidc/callback'],
+          ['Client ID', 'knetrahub'],
+          ['Redirect URI', 'https://knetrahub.example.com/api/auth/oidc/callback'],
           ['Scope', 'openid profile email groups'],
           ['Groups claim', 'groups from a Group Membership mapper.'],
           ['Role groups', 'swarm-admins and swarm-operators, or your own group names.']
         ],
         steps: [
           'Create or choose a realm, for example infrastructure.',
-          'Create an OpenID Connect client with Client ID dockhub.',
+          'Create an OpenID Connect client with Client ID knetrahub.',
           'Enable client authentication so Keycloak issues a client secret.',
           'Keep standard authorization code flow enabled.',
           'Add the exact KNetraHub callback URL as a valid redirect URI and the KNetraHub origin as a web origin.',
@@ -258,9 +258,9 @@ const configurationSections = [
         icon: 'i-lucide-fingerprint',
         summary: 'Create an Authentik application with an OAuth2/OpenID provider, then use the provider issuer and client credentials in KNetraHub.',
         options: [
-          ['Issuer', 'Default per-provider issuer such as https://authentik.example.com/application/o/dockhub/.'],
+          ['Issuer', 'Default per-provider issuer such as https://authentik.example.com/application/o/knetrahub/.'],
           ['Client type', 'Confidential client with a client ID and client secret.'],
-          ['Redirect URI', 'https://dockhub.example.com/api/auth/oidc/callback as an authorization redirect URI.'],
+          ['Redirect URI', 'https://knetrahub.example.com/api/auth/oidc/callback as an authorization redirect URI.'],
           ['Scope', 'openid profile email groups.'],
           ['Groups claim', 'groups, or a custom property mapping that returns group names.'],
           ['Provider name', 'Authentik or your organization SSO label.']
@@ -328,16 +328,16 @@ const configurationSections = [
 
 const keycloakKeyValues = [
   ['Realm', 'infrastructure'],
-  ['Client ID', 'dockhub'],
+  ['Client ID', 'knetrahub'],
   ['Client authentication', 'On'],
-  ['Valid redirect URI', 'https://dockhub.example.com/api/auth/oidc/callback'],
-  ['Web origin', 'https://dockhub.example.com']
+  ['Valid redirect URI', 'https://knetrahub.example.com/api/auth/oidc/callback'],
+  ['Web origin', 'https://knetrahub.example.com']
 ]
 
-const dockhubOidcValues = [
+const knetrahubOidcValues = [
   ['Provider label', 'Keycloak'],
   ['Issuer URL', 'https://keycloak.example.com/realms/infrastructure'],
-  ['Client ID', 'dockhub'],
+  ['Client ID', 'knetrahub'],
   ['Scope', 'openid profile email groups'],
   ['Groups claim', 'groups'],
   ['Admin group', 'swarm-admins'],
@@ -348,8 +348,8 @@ const authentikValues = [
   ['Application', 'KNetraHub'],
   ['Provider', 'OAuth2/OpenID'],
   ['Issuer mode', 'Per-provider'],
-  ['Issuer URL', 'https://authentik.example.com/application/o/dockhub/'],
-  ['Redirect URI', 'https://dockhub.example.com/api/auth/oidc/callback']
+  ['Issuer URL', 'https://authentik.example.com/application/o/knetrahub/'],
+  ['Redirect URI', 'https://knetrahub.example.com/api/auth/oidc/callback']
 ]
 
 const keycloakSteps = [
@@ -359,7 +359,7 @@ const keycloakSteps = [
   },
   {
     title: '2. Create an OpenID Connect client',
-    body: 'In Clients, create a client with Client ID dockhub and Client type OpenID Connect. Use a confidential client by enabling client authentication.'
+    body: 'In Clients, create a client with Client ID knetrahub and Client type OpenID Connect. Use a confidential client by enabling client authentication.'
   },
   {
     title: '3. Configure login settings',
@@ -379,7 +379,7 @@ const keycloakSteps = [
   }
 ]
 
-const dockhubSteps = [
+const knetrahubSteps = [
   {
     title: '1. Open Settings > Authentication',
     body: 'Enable OIDC single sign-on and keep local admin access available until SSO is tested.'
@@ -413,7 +413,7 @@ const authentikSteps = [
   },
   {
     title: '3. Keep per-provider issuer mode',
-    body: 'The default per-provider issuer produces an issuer like https://authentik.example.com/application/o/dockhub/. Copy that value into KNetraHub.'
+    body: 'The default per-provider issuer produces an issuer like https://authentik.example.com/application/o/knetrahub/. Copy that value into KNetraHub.'
   },
   {
     title: '4. Confirm scopes and claims',
@@ -621,7 +621,7 @@ const troubleshooting = [
                 <h3 class="font-display text-base font-semibold text-foam">KNetraHub side</h3>
               </div>
               <ol class="space-y-3 text-sm text-(--color-muted)">
-                <li v-for="step in dockhubSteps" :key="step.title">
+                <li v-for="step in knetrahubSteps" :key="step.title">
                   <p class="font-medium text-foam">{{ step.title }}</p>
                   <p class="mt-1">{{ step.body }}</p>
                 </li>
@@ -641,7 +641,7 @@ const troubleshooting = [
                   <span class="rounded-md bg-running/10 px-2 py-1 text-xs font-medium text-running">Enabled</span>
                 </div>
                 <div class="mt-3 space-y-2">
-                  <div v-for="[label, value] in dockhubOidcValues" :key="label" class="grid grid-cols-[7rem_minmax(0,1fr)] gap-2 text-xs">
+                  <div v-for="[label, value] in knetrahubOidcValues" :key="label" class="grid grid-cols-[7rem_minmax(0,1fr)] gap-2 text-xs">
                     <span class="text-faint">{{ label }}</span>
                     <span class="truncate font-mono text-(--color-muted)">{{ value }}</span>
                   </div>

@@ -5,7 +5,7 @@
 //   npm run build:docs  → static docs only  (NUXT_STATIC_DOCS=true nuxt generate)
 //
 const isDocsBuild = process.env.NUXT_STATIC_DOCS === 'true'
-// Set NUXT_DOCS_BASE_URL to your GitHub Pages subdirectory, e.g. /dockhub/
+// Set NUXT_DOCS_BASE_URL to your GitHub Pages subdirectory, e.g. /knetrahub/
 // Leave empty (/) for a custom domain or user/org site.
 const docsBaseURL = process.env.NUXT_DOCS_BASE_URL || '/'
 const ssrEnabled = process.env.NUXT_SSR !== 'false'
@@ -57,7 +57,7 @@ export default defineNuxtConfig({
       cert: process.env.NUXT_DOCKER_CERT || '',
       key: process.env.NUXT_DOCKER_KEY || ''
     },
-    // Shared secret the dockhub-agent (global service, one task per swarm
+    // Shared secret the knetrahub-agent (global service, one task per swarm
     // node) presents when posting per-node usage stats back to this app.
     agent: {
       token: process.env.NUXT_AGENT_TOKEN || '',
@@ -73,7 +73,7 @@ export default defineNuxtConfig({
       searchBase: process.env.NUXT_LDAP_SEARCH_BASE || '',
       // {{username}} is substituted at runtime
       searchFilter: process.env.NUXT_LDAP_SEARCH_FILTER || '(uid={{username}})',
-      // group -> DockHub role mapping, comma separated "cn=admins:admin,cn=ops:operator"
+      // group -> KNetraHub role mapping, comma separated "cn=admins:admin,cn=ops:operator"
       groupSearchBase: process.env.NUXT_LDAP_GROUP_SEARCH_BASE || process.env.NUXT_LDAP_GROUP_BASE || '',
       groupSearchFilter: process.env.NUXT_LDAP_GROUP_SEARCH_FILTER || process.env.NUXT_LDAP_GROUP_FILTER || '(member={{dn}})',
       adminGroup: process.env.NUXT_LDAP_ADMIN_GROUP || '',
@@ -90,7 +90,7 @@ export default defineNuxtConfig({
       // Defaults to {request origin}/api/auth/oidc/callback when empty
       redirectUri: process.env.NUXT_OIDC_REDIRECT_URI || '',
       scope: process.env.NUXT_OIDC_SCOPE || 'openid profile email groups',
-      // Claims used to build the DockHub user
+      // Claims used to build the KNetraHub user
       usernameClaim: process.env.NUXT_OIDC_USERNAME_CLAIM || 'preferred_username',
       displayNameClaim: process.env.NUXT_OIDC_DISPLAY_NAME_CLAIM || 'name',
       // Claim holding group names; dot-paths supported (e.g. "realm_access.roles")
@@ -98,7 +98,7 @@ export default defineNuxtConfig({
       // Claim holding Keycloak realm roles; these drive per-app access (Settings
       // -> Apps & Access). Dot-paths supported; Keycloak's default is realm_access.roles.
       rolesClaim: process.env.NUXT_OIDC_ROLES_CLAIM || 'realm_access.roles',
-      // group -> DockHub role mapping; unmatched users become viewers
+      // group -> KNetraHub role mapping; unmatched users become viewers
       adminGroup: process.env.NUXT_OIDC_ADMIN_GROUP || '',
       operatorGroup: process.env.NUXT_OIDC_OPERATOR_GROUP || '',
       // Label shown on the login button
@@ -120,9 +120,9 @@ export default defineNuxtConfig({
     db: {
       host: process.env.NUXT_DB_HOST || 'localhost',
       port: Number(process.env.NUXT_DB_PORT || 5432),
-      database: process.env.NUXT_DB_NAME || 'dockhub',
-      user: process.env.NUXT_DB_USER || 'dockhub',
-      password: process.env.NUXT_DB_PASSWORD || 'dockhub',
+      database: process.env.NUXT_DB_NAME || 'knetrahub',
+      user: process.env.NUXT_DB_USER || 'knetrahub',
+      password: process.env.NUXT_DB_PASSWORD || 'knetrahub',
       ssl: process.env.NUXT_DB_SSL === 'true',
       poolMax: Number(process.env.NUXT_DB_POOL_MAX || 10)
     },
@@ -133,7 +133,7 @@ export default defineNuxtConfig({
     },
 
     // Background poller that redeploys services opted into the
-    // dockhub.autoredeploy label when their registry's image digest changes.
+    // knetrahub.autoredeploy label when their registry's image digest changes.
     autoredeploy: {
       enabled: process.env.NUXT_AUTOREDEPLOY_ENABLED !== 'false',
       intervalMinutes: Number(process.env.NUXT_AUTOREDEPLOY_INTERVAL_MINUTES || 15),
@@ -156,7 +156,7 @@ export default defineNuxtConfig({
   colorMode: {
     preference: 'system',
     fallback: 'dark',
-    storageKey: 'dockhub-color-mode'
+    storageKey: 'knetrahub-color-mode'
   },
 
   ui: {
@@ -186,14 +186,14 @@ export default defineNuxtConfig({
     baseURL: isDocsBuild ? docsBaseURL : undefined,
     pageTransition: { name: 'page', mode: 'out-in' },
     head: {
-      title: 'DockHub - Swarm Console',
+      title: 'KNetraHub - Swarm Console',
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         { name: 'description', content: 'Run your Docker Swarm from one hub. A convenient, GitLab-backed Swarm management console.' },
         { name: 'color-scheme', content: 'dark light' },
         { name: 'theme-color', content: '#0066ff' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
-        { name: 'apple-mobile-web-app-title', content: 'DockHub' },
+        { name: 'apple-mobile-web-app-title', content: 'KNetraHub' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
         { name: 'msapplication-config', content: '/browserconfig.xml' },
         { name: 'msapplication-TileColor', content: '#0066ff' }
@@ -209,7 +209,7 @@ export default defineNuxtConfig({
   pwa: {
     registerType: 'autoUpdate',
     workbox: {
-      // DockHub is server-rendered and auth-gated - every route's HTML comes
+      // KNetraHub is server-rendered and auth-gated - every route's HTML comes
       // fresh from Nitro per request. vite-plugin-pwa's generateSW strategy
       // defaults navigateFallback to "/", which registers a Workbox
       // NavigationRoute that intercepts ALL navigations (any URL, not just

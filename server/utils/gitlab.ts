@@ -3,7 +3,7 @@
  *
  * Stack compose files are stored in a GitLab repository under a configurable
  * folder (default: `stacks/`). Each deploy commits the compose file, so the
- * full change history of every stack is tracked in Git and visible in DockHub.
+ * full change history of every stack is tracked in Git and visible in KNetraHub.
  */
 
 import { getGitlabSettings } from './gitlabSettings'
@@ -106,7 +106,7 @@ export async function commitStackFile(opts: {
       content: opts.content,
       commit_message: opts.message,
       author_name: opts.authorName,
-      author_email: opts.authorEmail || 'dockhub@local'
+      author_email: opts.authorEmail || 'knetrahub@local'
     }
   })
 }
@@ -117,7 +117,7 @@ export async function deleteStackFile(stackName: string, message: string, author
   const path = await filePath(stackName)
   return await api(`/repository/files/${encodeURIComponent(path)}`, {
     method: 'DELETE',
-    body: { branch: c.branch, commit_message: message, author_name: authorName, author_email: authorEmail || 'dockhub@local' }
+    body: { branch: c.branch, commit_message: message, author_name: authorName, author_email: authorEmail || 'knetrahub@local' }
   })
 }
 

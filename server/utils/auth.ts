@@ -27,8 +27,8 @@ export interface SessionUser {
   sid?: string
 }
 
-// Keep the legacy cookie name so existing sessions survive the DockHub rebrand.
-const COOKIE = 'dockhub_token'
+// Keep the legacy cookie name so existing sessions survive the KNetraHub rebrand.
+const COOKIE = 'knetrahub_token'
 
 function secret() {
   return new TextEncoder().encode(useRuntimeConfig().jwtSecret)

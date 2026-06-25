@@ -24,7 +24,7 @@ interface OidcDiscovery {
 
 // Short-lived cookie that carries the per-login transaction (CSRF state,
 // replay nonce, PKCE verifier) across the redirect round-trip.
-const TXN_COOKIE = 'dockhub_oidc_txn'
+const TXN_COOKIE = 'knetrahub_oidc_txn'
 
 // Discovery document + JWKS are cached per issuer for an hour.
 const DISCOVERY_TTL = 60 * 60 * 1000

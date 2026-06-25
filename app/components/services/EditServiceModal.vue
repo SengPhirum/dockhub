@@ -150,7 +150,7 @@ function populateFromData() {
   limitMemoryMiB.value = summary.resources?.limitMemoryBytes ? Math.round(summary.resources.limitMemoryBytes / 1024 / 1024) : null
 
   const serviceLabels = { ...(d.labels?.service || {}) }
-  delete serviceLabels['dockhub.autoredeploy']
+  delete serviceLabels['knetrahub.autoredeploy']
   labelRows.value = Object.entries(serviceLabels).map(([key, value]) => ({ key, value: String(value) }))
   autoredeploy.value = !!d.autoredeploy
   constraintRows.value = d.placement?.Constraints?.length ? [...d.placement.Constraints] : []

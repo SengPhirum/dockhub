@@ -5,9 +5,9 @@ import { statfs } from 'node:fs/promises'
 import http from 'node:http'
 
 const SOCKET_PATH = process.env.DOCKER_SOCKET_PATH || '/var/run/docker.sock'
-const TARGET_URL = process.env.DOCKHUB_AGENT_URL || 'http://dockhub_app:3000/api/agent/report'
-const TOKEN = process.env.DOCKHUB_AGENT_TOKEN || ''
-const INTERVAL_MS = Number(process.env.DOCKHUB_AGENT_INTERVAL_MS) || 5000
+const TARGET_URL = process.env.KNETRAHUB_AGENT_URL || 'http://knetrahub_app:3000/api/agent/report'
+const TOKEN = process.env.KNETRAHUB_AGENT_TOKEN || ''
+const INTERVAL_MS = Number(process.env.KNETRAHUB_AGENT_INTERVAL_MS) || 5000
 const REQUEST_TIMEOUT_MS = 5000
 
 function dockerGet(path) {

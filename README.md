@@ -2,7 +2,7 @@
 
 **A portal for everything in your infrastructure, one hub at a time.** 
 
-KNetraHub (formerly **DockHub**) is the portal shell—handling login, dashboard, sidebar, permissions, and settings—for a growing set of independent operations subsystems. These subsystems are loaded into the shell via **Module Federation**.
+KNetraHub (formerly **KNetraHub**) is the portal shell—handling login, dashboard, sidebar, permissions, and settings—for a growing set of independent operations subsystems. These subsystems are loaded into the shell via **Module Federation**.
 
 The first and only fully-built subsystem today is **KNetraHub-Docker**: a complete Docker Swarm management console featuring:
 - Live nodes, services, stacks, tasks, networks, volumes, secrets, and configs
@@ -110,9 +110,9 @@ The portal handles login and holds the session in an `httpOnly` cookie. The `Rem
 ## 🚀 Quick Start (Development)
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env          # edit as needed
-npm run dev                   # http://localhost:3000
+pnpm run dev                   # http://localhost:3000
 ```
 
 By default, it talks to Docker at `/var/run/docker.sock`, so run it **on a swarm manager node**. On first run, it seeds an admin account:
@@ -126,7 +126,7 @@ By default, it talks to Docker at `/var/run/docker.sock`, so run it **on a swarm
 
 To see KNetraHub-Net loaded into the portal:
 ```bash
-npm run dev:mf
+pnpm run dev:mf
 ```
 This runs the portal (`:3000`), the KNetraHub-Net UI (`:3101`), and its API (`:4101`) side by side. Visit `http://localhost:3000/net`.
 
@@ -134,16 +134,16 @@ This runs the portal (`:3000`), the KNetraHub-Net UI (`:3101`), and its API (`:4
 
 To run against a local disposable swarm instead of your host Docker engine:
 ```bash
-npm run dev:swarm
+pnpm run dev:swarm
 ```
 This uses [`docker-compose.dev.yml`](./docker-compose.dev.yml) to start a lightweight Docker-in-Docker setup.
 
 Useful commands:
 ```bash
-npm run dev:swarm -- ps
-npm run dev:swarm -- logs -f swarm-manager
-npm run dev:swarm:down
-npm run dev:swarm:reset  # removes the disposable swarm volumes
+pnpm run dev:swarm -- ps
+pnpm run dev:swarm -- logs -f swarm-manager
+pnpm run dev:swarm:down
+pnpm run dev:swarm:reset  # removes the disposable swarm volumes
 ```
 
 ---
@@ -152,7 +152,7 @@ npm run dev:swarm:reset  # removes the disposable swarm volumes
 
 ### Building Manually
 ```bash
-npm run build
+pnpm run build
 node .output/server/index.mjs
 ```
 
@@ -164,7 +164,7 @@ Ship it as a swarm service, pinned to a manager node. Build and publish:
 
 Deploy the published image:
 ```bash
-docker stack deploy -c docker-compose.yml dockhub
+docker stack deploy -c docker-compose.yml knetrahub
 ```
 
 ---

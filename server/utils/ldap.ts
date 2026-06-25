@@ -15,7 +15,7 @@ export interface LdapResult {
  *
  * Strategy: bind with a service account, search for the user, then
  * re-bind as the found DN with the supplied password to verify it.
- * Group membership maps to a DockHub role.
+ * Group membership maps to a KNetraHub role.
  */
 export async function ldapAuthenticate(username: string, password: string): Promise<LdapResult> {
   const cfg = await getLdapSettings()

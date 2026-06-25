@@ -1,7 +1,7 @@
 # Local development swarm:
 #   npm run dev:swarm
 #
-# Default footprint: one manager running DockHub and one worker. Add the
+# Default footprint: one manager running KNetraHub and one worker. Add the
 # optional second worker for broader scheduling tests with:
 #   npm run dev:swarm:full
 
@@ -10,12 +10,12 @@ x-swarm-common: &swarm-common
   init: true
   stop_grace_period: 45s
   networks:
-    - dockhub-dev
+    - knetrahub-dev
 
 x-worker-node: &worker-node
   <<: *swarm-common
   image: ${DOCKER_DIND_IMAGE:-docker:29-dind}
-  entrypoint: ["/bin/sh", "/usr/local/bin/dockhub-swarm-dev"]
+  entrypoint: ["/bin/sh", "/usr/local/bin/knetrahub-swarm-dev"]
   command: ["worker"]
   depends_on:
     - swarm-manager
@@ -25,30 +25,30 @@ x-worker-node: &worker-node
     SWARM_MANAGER_HOST: "swarm-manager"
     # swarm-entrypoint.sh runs the same agent/index.mjs script directly
     # against this node's local Docker socket, reporting to the manager's
-    # app - same role as the dockhub-agent global service in prod.
-    DOCKHUB_AGENT_URL: "http://swarm-manager:3000/api/agent/report"
+    # app - same role as the knetrahub-agent global service in prod.
+    KNETRAHUB_AGENT_URL: "http://swarm-manager:3000/api/agent/report"
     # Shared secret with the manager's NUXT_AGENT_TOKEN below - keep in sync.
-    DOCKHUB_AGENT_TOKEN: "change-me-to-a-long-random-string"
+    KNETRAHUB_AGENT_TOKEN: "change-me-to-a-long-random-string"
   volumes:
-    - ./docker/dev/swarm-entrypoint.sh:/usr/local/bin/dockhub-swarm-dev:ro
+    - ./docker/dev/swarm-entrypoint.sh:/usr/local/bin/knetrahub-swarm-dev:ro
     - ./agent:/agent:ro
-    - dockhub-swarm-state:/swarm
+    - knetrahub-swarm-state:/swarm
 
 services:
   # Single Postgres + TimescaleDB instance for app data + metrics history -
   # plain compose service (not part of the nested swarm), reachable from
-  # swarm-manager by hostname on the dockhub-dev network.
+  # swarm-manager by hostname on the knetrahub-dev network.
   timescaledb:
     image: timescale/timescaledb:2.17.2-pg16
     hostname: timescaledb
     networks:
-      - dockhub-dev
+      - knetrahub-dev
     environment:
-      POSTGRES_DB: dockhub
-      POSTGRES_USER: dockhub
-      POSTGRES_PASSWORD: dockhub
+      POSTGRES_DB: knetrahub
+      POSTGRES_USER: knetrahub
+      POSTGRES_PASSWORD: knetrahub
     volumes:
-      - dockhub-timescale-data:/var/lib/postgresql/data
+      - knetrahub-timescale-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
@@ -68,7 +68,7 @@ services:
     environment:
       DOCKER_TLS_CERTDIR: ""
       DOCKERD_ARGS: "--log-level=warn --iptables=false --ip-masq=false --tls=false --host=tcp://0.0.0.0:2375"
-      DOCKHUB_RUN_APP: "true"
+      KNETRAHUB_RUN_APP: "true"
       NODE_ENV: "development"
       HOST: "0.0.0.0"
       PORT: "3000"
@@ -81,35 +81,35 @@ services:
       CHOKIDAR_USEPOLLING: "true"
       VITE_USE_POLLING: "true"
       WATCHPACK_POLLING: "true"
-      # The manager's dockhub-agent process talks to the app in the same container.
-      DOCKHUB_AGENT_URL: "http://localhost:3000/api/agent/report"
-      DOCKHUB_AGENT_TOKEN: "change-me-to-a-long-random-string"
+      # The manager's knetrahub-agent process talks to the app in the same container.
+      KNETRAHUB_AGENT_URL: "http://localhost:3000/api/agent/report"
+      KNETRAHUB_AGENT_TOKEN: "change-me-to-a-long-random-string"
       # Shared secret the report endpoint checks against - keep in sync with
-      # DOCKHUB_AGENT_TOKEN above and on every worker node.
+      # KNETRAHUB_AGENT_TOKEN above and on every worker node.
       NUXT_AGENT_TOKEN: "change-me-to-a-long-random-string"
       # Postgres + TimescaleDB - app data and metrics history, one instance.
       NUXT_DB_HOST: "timescaledb"
       NUXT_DB_PORT: "5432"
-      NUXT_DB_NAME: "dockhub"
-      NUXT_DB_USER: "dockhub"
-      NUXT_DB_PASSWORD: "dockhub"
+      NUXT_DB_NAME: "knetrahub"
+      NUXT_DB_USER: "knetrahub"
+      NUXT_DB_PASSWORD: "knetrahub"
     ports:
       - "3000:3000"
     volumes:
       - .:/workspace
       - ./agent:/agent:ro
-      - dockhub-manager-docker:/var/lib/docker
-      - dockhub-swarm-state:/swarm
-      - dockhub-node-modules:/workspace/node_modules
-      - dockhub-nuxt:/workspace/.nuxt
+      - knetrahub-manager-docker:/var/lib/docker
+      - knetrahub-swarm-state:/swarm
+      - knetrahub-node-modules:/workspace/node_modules
+      - knetrahub-nuxt:/workspace/.nuxt
 
   swarm-worker-1:
     <<: *worker-node
     hostname: swarm-worker-1
     volumes:
-      - ./docker/dev/swarm-entrypoint.sh:/usr/local/bin/dockhub-swarm-dev:ro
+      - ./docker/dev/swarm-entrypoint.sh:/usr/local/bin/knetrahub-swarm-dev:ro
       - ./agent:/agent:ro
-      - dockhub-swarm-state:/swarm
+      - knetrahub-swarm-state:/swarm
 
   swarm-worker-2:
     <<: *worker-node
@@ -117,16 +117,16 @@ services:
       - full
     hostname: swarm-worker-2
     volumes:
-      - ./docker/dev/swarm-entrypoint.sh:/usr/local/bin/dockhub-swarm-dev:ro
+      - ./docker/dev/swarm-entrypoint.sh:/usr/local/bin/knetrahub-swarm-dev:ro
       - ./agent:/agent:ro
-      - dockhub-swarm-state:/swarm
+      - knetrahub-swarm-state:/swarm
 
 networks:
-  dockhub-dev:
+  knetrahub-dev:
 
 volumes:
-  dockhub-manager-docker:
-  dockhub-swarm-state:
-  dockhub-node-modules:
-  dockhub-nuxt:
-  dockhub-timescale-data:
+  knetrahub-manager-docker:
+  knetrahub-swarm-state:
+  knetrahub-node-modules:
+  knetrahub-nuxt:
+  knetrahub-timescale-data:

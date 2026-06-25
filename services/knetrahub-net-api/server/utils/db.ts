@@ -14,9 +14,9 @@ export function getDb(): Pool {
     pool = new Pool({
       host: process.env.NUXT_NET_DB_HOST || 'localhost',
       port: Number(process.env.NUXT_NET_DB_PORT || 5432),
-      database: process.env.NUXT_NET_DB_NAME || 'dockhub',
-      user: process.env.NUXT_NET_DB_USER || 'dockhub',
-      password: process.env.NUXT_NET_DB_PASSWORD || 'dockhub',
+      database: process.env.NUXT_NET_DB_NAME || 'knetrahub',
+      user: process.env.NUXT_NET_DB_USER || 'knetrahub',
+      password: process.env.NUXT_NET_DB_PASSWORD || 'knetrahub',
       ssl: process.env.NUXT_NET_DB_SSL === 'true',
       max: Number(process.env.NUXT_NET_DB_POOL_MAX || 5)
     })

@@ -16,7 +16,7 @@ export interface AgentReport {
 }
 
 // One process (replicas: 1), so a module-level map is enough to hold the
-// latest sample reported by each node's dockhub-agent task.
+// latest sample reported by each node's knetrahub-agent task.
 const reports = new Map<string, AgentReport>()
 
 export function recordAgentReport(report: AgentReport) {

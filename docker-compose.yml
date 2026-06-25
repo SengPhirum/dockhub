@@ -1,12 +1,12 @@
-# Deploy DockHub itself as a swarm service.
+# Deploy KNetraHub itself as a swarm service.
 #   ./release.sh
-#   docker stack deploy -c docker-compose.yml dockhub
+#   docker stack deploy -c docker-compose.yml knetrahub
 #
 # It must be scheduled on a MANAGER node (placement constraint below) so it
 # can reach the swarm control plane via the mounted Docker socket.
 services:
   app:
-    image: registry.kdsb.com.kh/dockhub/app:latest
+    image: registry.kdsb.com.kh/knetrahub/app:latest
     ports:
       - "3000:3000"
     networks:
@@ -14,14 +14,14 @@ services:
     environment:
       NUXT_JWT_SECRET: "change-me-to-a-long-random-string"
       NUXT_DOCKER_SOCKET_PATH: "/var/run/docker.sock"
-      # Shared secret with the dockhub-agent service below - keep them in sync.
+      # Shared secret with the knetrahub-agent service below - keep them in sync.
       NUXT_AGENT_TOKEN: "change-me-to-a-long-random-string"
       # Postgres + TimescaleDB - app data and metrics history, one instance.
       # Keep credentials in sync with the timescaledb service below.
       NUXT_DB_HOST: "timescaledb"
       NUXT_DB_PORT: "5432"
-      NUXT_DB_NAME: "dockhub"
-      NUXT_DB_USER: "dockhub"
+      NUXT_DB_NAME: "knetrahub"
+      NUXT_DB_USER: "knetrahub"
       NUXT_DB_PASSWORD: "change-me-to-a-long-random-string"
       NUXT_METRICS_RETENTION_DAYS: "30"
       # LDAP (optional)
@@ -29,7 +29,7 @@ services:
       # OIDC SSO (optional)
       NUXT_OIDC_ENABLED: "false"
       # NUXT_OIDC_ISSUER: "https://keycloak.example.com/realms/main"
-      # NUXT_OIDC_CLIENT_ID: "dockhub"
+      # NUXT_OIDC_CLIENT_ID: "knetrahub"
       # NUXT_OIDC_CLIENT_SECRET: "client-secret"
       # NUXT_OIDC_ADMIN_GROUP: "swarm-admins"
       # NUXT_OIDC_OPERATOR_GROUP: "swarm-operators"
@@ -76,22 +76,22 @@ services:
           - node.role == manager
 
   # Reports live CPU/memory/disk usage for the node it runs on. Deployed
-  # globally (one task per node, managers included) since dockhub only has
+  # globally (one task per node, managers included) since knetrahub only has
   # direct Docker API access to its own node - this is how it learns the
   # usage of every other node without exposing the Docker API over TCP.
   agent:
-    image: registry.kdsb.com.kh/dockhub/agent:latest
+    image: registry.kdsb.com.kh/knetrahub/agent:latest
     networks:
       - net
     environment:
-      DOCKHUB_AGENT_URL: "http://dockhub_app:3000/api/agent/report"
-      DOCKHUB_AGENT_TOKEN: "change-me-to-a-long-random-string"
+      KNETRAHUB_AGENT_URL: "http://knetrahub_app:3000/api/agent/report"
+      KNETRAHUB_AGENT_TOKEN: "change-me-to-a-long-random-string"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     deploy:
       mode: global
       labels:
-        dockhub.agent: 'true'
+        knetrahub.agent: 'true'
       update_config:
         parallelism: 1
         delay: 5s
@@ -120,8 +120,8 @@ services:
     networks:
       - net
     environment:
-      POSTGRES_DB: dockhub
-      POSTGRES_USER: dockhub
+      POSTGRES_DB: knetrahub
+      POSTGRES_USER: knetrahub
       # Keep in sync with the app service's NUXT_DB_PASSWORD above.
       POSTGRES_PASSWORD: "change-me-to-a-long-random-string"
     volumes:

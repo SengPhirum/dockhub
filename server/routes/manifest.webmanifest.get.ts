@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
   return {
     name: appearance.appName,
     short_name: appearance.appName,
-    description: 'DockHub - Docker Swarm and container management dashboard.',
+    description: 'KNetraHub - Docker Swarm and container management dashboard.',
     start_url: '/',
     scope: '/',
     display: 'standalone',

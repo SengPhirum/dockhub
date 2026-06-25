@@ -174,7 +174,7 @@ export async function recordMetrics(report: AgentReportForMetrics): Promise<void
   try {
     const db = getDb()
     // Defensive: Nitro doesn't await plugins before it starts accepting
-    // requests, so the dockhub-agent's first reports after a fresh deploy
+    // requests, so the knetrahub-agent's first reports after a fresh deploy
     // can otherwise land here before server/plugins/db.ts's migrateMetrics()
     // call has finished creating the hypertables. Memoized, so this is a
     // no-op once that call has completed.

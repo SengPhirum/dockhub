@@ -36,9 +36,9 @@ async function submit() {
     <!-- wordmark + thesis -->
     <div class="mb-8 text-center">
       <span class="mx-auto mb-4 flex size-20 items-center justify-center">
-        <DockHubLogo variant="icon" class="size-20" />
+        <KNetraHubLogo variant="icon" class="size-20" />
       </span>
-      <DockHubLogo size="lg" class="mx-auto mb-3 max-w-full" />
+      <KNetraHubLogo size="lg" class="mx-auto mb-3 max-w-full" />
       <h1 class="sr-only">{{ appearance.appName }}</h1>
       <p class="mt-1.5 text-sm text-(--color-muted)">Run your Docker Swarm from one hub.</p>
     </div>

@@ -5,10 +5,10 @@ export default defineEventHandler((event) => {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DockHub — API Reference</title>
+  <title>KNetraHub — API Reference</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.18.2/swagger-ui.css" />
   <style>
-    /* ── DockHub design tokens ──────────────────────────────────────────────── */
+    /* ── KNetraHub design tokens ──────────────────────────────────────────────── */
     :root {
       --bg:          #f8fbfd;
       --surface:     #ffffff;
@@ -499,10 +499,10 @@ export default defineEventHandler((event) => {
   </style>
 </head>
 <body>
-  <!-- Apply color mode from DockHub localStorage preference BEFORE render -->
+  <!-- Apply color mode from KNetraHub localStorage preference BEFORE render -->
   <script>
     (function () {
-      var pref = localStorage.getItem('dockhub-color-mode') || 'system';
+      var pref = localStorage.getItem('knetrahub-color-mode') || 'system';
       if (pref === 'dark') {
         document.documentElement.classList.add('dark');
       } else if (pref === 'light') {
@@ -524,7 +524,7 @@ export default defineEventHandler((event) => {
         <rect x="13" y="17" width="4" height="4" rx="1" fill="white" opacity=".65"/>
         <path d="M5 23 Q10 20 16 21.5 Q22 23 27 21" stroke="white" stroke-width="1.5" fill="none" opacity=".55"/>
       </svg>
-      <span class="dh-title">DockHub</span>
+      <span class="dh-title">KNetraHub</span>
       <span class="dh-badge">REST API</span>
       <span class="dh-divider"></span>
       <span class="dh-version">v1.0</span>
@@ -553,7 +553,7 @@ export default defineEventHandler((event) => {
   <script>
     // ── Color mode toggle ──────────────────────────────────────────────────────
     function getEffectiveMode() {
-      var pref = localStorage.getItem('dockhub-color-mode') || 'system';
+      var pref = localStorage.getItem('knetrahub-color-mode') || 'system';
       if (pref === 'system') return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       return pref;
     }
@@ -566,7 +566,7 @@ export default defineEventHandler((event) => {
 
     function toggleTheme() {
       var next = getEffectiveMode() === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('dockhub-color-mode', next);
+      localStorage.setItem('knetrahub-color-mode', next);
       document.documentElement.classList.remove('dark', 'light');
       document.documentElement.classList.add(next);
       syncThemeIcon();

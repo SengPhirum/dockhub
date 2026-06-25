@@ -6,9 +6,9 @@ const { Pool } = pg;
 const db = new Pool({
   host: 'localhost',
   port: 5432,
-  database: 'dockhub',
-  user: 'dockhub',
-  password: 'dockhub',
+  database: 'knetrahub',
+  user: 'knetrahub',
+  password: 'knetrahub',
 });
 
 async function run() {

@@ -39,7 +39,7 @@ const { bytes, cpus, short } = useFormat()
 const { prefs } = usePreferences()
 const toast = useToast()
 
-const viewMode = useLocalStorage<NodeViewMode>('dockhub:nodes:view', 'cards')
+const viewMode = useLocalStorage<NodeViewMode>('knetrahub:nodes:view', 'cards')
 
 const { data, status, error, refreshing, refresh } = useApiCache('nodes', () => $fetch<any[]>('/api/nodes'))
 const usageData = useState<{ sampledAt: string; nodes: NodeUsage[] } | null>('nodes:usage', () => null)

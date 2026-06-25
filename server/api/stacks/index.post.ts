@@ -19,9 +19,9 @@ export default defineEventHandler(async (event) => {
     commit = await commitStackFile({
       stackName: body.name,
       content: body.compose,
-      message: body.message || `Deploy ${body.name} via DockHub`,
+      message: body.message || `Deploy ${body.name} via KNetraHub`,
       authorName: user.displayName,
-      authorEmail: `${user.username}@dockhub`
+      authorEmail: `${user.username}@knetrahub`
     })
   }
 

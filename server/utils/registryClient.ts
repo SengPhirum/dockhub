@@ -2,8 +2,8 @@ import { listRegistries } from './store'
 
 /** Service-level label that opts a service into the autoredeploy poller
  * (server/plugins/autoredeploy.ts). Not a Docker-native concept - this is
- * DockHub's own convention, same spirit as stack.ts's STACK_LABEL. */
-export const AUTOREDEPLOY_LABEL = 'dockhub.autoredeploy'
+ * KNetraHub's own convention, same spirit as stack.ts's STACK_LABEL. */
+export const AUTOREDEPLOY_LABEL = 'knetrahub.autoredeploy'
 
 export interface ImageRef {
   registryHost: string

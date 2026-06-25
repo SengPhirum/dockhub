@@ -21,8 +21,8 @@ example implementation; the real future home is its own repository.
 
 ```bash
 cp .env.example .env   # set NUXT_NET_JWT_SECRET to match the portal's NUXT_JWT_SECRET
-npm install
-npm run dev            # http://localhost:4101
+pnpm install
+pnpm run dev            # http://localhost:4101
 ```
 
 ```bash
@@ -56,7 +56,7 @@ full planned contract.
 ## Build
 
 ```bash
-npm run build
+pnpm run build
 node .output/server/index.mjs
 ```
 

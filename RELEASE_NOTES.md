@@ -1,13 +1,13 @@
-# DockHub v0.1.1
+# KNetraHub v0.1.1
 
 Date: 2026-06-25 UTC
 
 ## Docker Images
 
-- `registry.kdsb.com.kh/dockhub/app:0.1.1`
-- `registry.kdsb.com.kh/dockhub/app:latest`
-- `registry.kdsb.com.kh/dockhub/agent:0.1.1`
-- `registry.kdsb.com.kh/dockhub/agent:latest`
+- `registry.kdsb.com.kh/knetrahub/app:0.1.1`
+- `registry.kdsb.com.kh/knetrahub/app:latest`
+- `registry.kdsb.com.kh/knetrahub/agent:0.1.1`
+- `registry.kdsb.com.kh/knetrahub/agent:latest`
 
 ## Source
 
@@ -38,7 +38,7 @@ Date: 2026-06-25 UTC
 - feat: expand settings page with LDAP/OIDC config UI and add docs pages (b35b7b0)
 - feat: add Swagger API reference and user API token management (2d16d2e)
 - Update setting (7257385)
-- feat: add PWA support, DockHubLogo component, and brand icons (2e8f4d2)
+- feat: add PWA support, KNetraHubLogo component, and brand icons (2e8f4d2)
 - feat: major UX overhaul — SPA cache, Moby Blue theme, roles/settings split, author/license (658e837)
 - Init (7cf7e9c)
 - Init (33f6c2b)

@@ -1,2 +1,2 @@
-docker build -t dockhub:latest .
-docker stack deploy -c docker-compose.yml dockhub
+docker build -t knetrahub:latest .
+docker stack deploy -c docker-compose.yml knetrahub

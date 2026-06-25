@@ -13,13 +13,13 @@ export interface AppearanceSettings {
   appName: string
   /** Hex color, e.g. #2496ED. Drives --ui-primary and the app's accent color. */
   primaryColor: string
-  /** Empty string means "use the built-in DockHub wordmark". */
+  /** Empty string means "use the built-in KNetraHub wordmark". */
   logoHorizontalUrl: string
-  /** Empty string means "use the built-in DockHub icon". */
+  /** Empty string means "use the built-in KNetraHub icon". */
   logoIconUrl: string
-  /** Empty string means "use the built-in DockHub favicon". Browser tab icon. */
+  /** Empty string means "use the built-in KNetraHub favicon". Browser tab icon. */
   faviconUrl: string
-  /** Empty string means "use the built-in DockHub app icon". Drives the PWA manifest icons and the Apple touch icon. */
+  /** Empty string means "use the built-in KNetraHub app icon". Drives the PWA manifest icons and the Apple touch icon. */
   pwaIconUrl: string
 }
 

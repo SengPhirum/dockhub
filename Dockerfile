@@ -14,16 +14,17 @@ ENV npm_config_strict_ssl=${NPM_CONFIG_STRICT_SSL}
 ARG NODE_TLS_REJECT_UNAUTHORIZED=0
 ENV NODE_TLS_REJECT_UNAUTHORIZED=${NODE_TLS_REJECT_UNAUTHORIZED}
 
-COPY package.json package-lock.json* ./
+COPY package.json pnpm-lock.yaml* .npmrc* ./
 RUN --mount=type=secret,id=npm_ca,required=false \
     if [ -f /run/secrets/npm_ca ]; then \
       cp /run/secrets/npm_ca /usr/local/share/ca-certificates/npm-ca.crt; \
       update-ca-certificates; \
     fi; \
-    npm ci
+    corepack enable pnpm; \
+    pnpm install --frozen-lockfile
 
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 FROM node:22-alpine
 WORKDIR /app

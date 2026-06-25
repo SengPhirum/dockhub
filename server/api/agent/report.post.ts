@@ -2,9 +2,9 @@ import { recordAgentReport } from '~~/server/utils/agentReports'
 import { recordMetrics } from '~~/server/utils/metrics'
 
 /**
- * Ingest endpoint for the dockhub-agent task running on every swarm node
+ * Ingest endpoint for the knetrahub-agent task running on every swarm node
  * (deployed via `deploy: mode: global`). Each agent only ever talks to its
- * own local Docker socket and pushes a stats snapshot here, so DockHub never
+ * own local Docker socket and pushes a stats snapshot here, so KNetraHub never
  * needs the Docker API exposed over TCP on worker nodes.
  */
 export default defineEventHandler(async (event) => {

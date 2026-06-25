@@ -37,7 +37,7 @@ function isActive(to: string) {
       @click="emit('navigate')"
     >
       <span class="flex w-full items-center justify-center px-3 py-2">
-        <DockHubLogo size="sm" class="max-w-full" />
+        <KNetraHubLogo size="sm" class="max-w-full" />
       </span>
     </NuxtLink>
 

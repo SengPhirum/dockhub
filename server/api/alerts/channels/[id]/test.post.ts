@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   if (!channel) throw createError({ statusCode: 404, statusMessage: 'Channel not found' })
 
   try {
-    await notifyChannel(channel, 'Test notification from DockHub')
+    await notifyChannel(channel, 'Test notification from KNetraHub')
     return { ok: true }
   } catch (err: any) {
     return { ok: false, error: err?.message || 'Failed to send test notification' }

@@ -126,7 +126,7 @@ async function resetAppearanceToDefaults() {
             <div class="flex items-center gap-3 rounded-lg border border-dashed border-hull p-3">
               <div class="flex h-12 w-32 items-center justify-center overflow-hidden rounded bg-surface-2">
                 <img v-if="appearance.logoHorizontalUrl" :src="appearance.logoHorizontalUrl" alt="" class="max-h-full max-w-full object-contain">
-                <DockHubLogo v-else size="sm" />
+                <KNetraHubLogo v-else size="sm" />
               </div>
               <div class="flex flex-col gap-1.5">
                 <UButton size="xs" color="neutral" variant="soft" icon="i-lucide-upload" label="Upload" @click="logoHorizontalInput?.click()" />
@@ -139,7 +139,7 @@ async function resetAppearanceToDefaults() {
             <div class="flex items-center gap-3 rounded-lg border border-dashed border-hull p-3">
               <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded bg-surface-2">
                 <img v-if="appearance.logoIconUrl" :src="appearance.logoIconUrl" alt="" class="max-h-full max-w-full object-contain">
-                <DockHubLogo v-else variant="icon" size="sm" />
+                <KNetraHubLogo v-else variant="icon" size="sm" />
               </div>
               <div class="flex flex-col gap-1.5">
                 <UButton size="xs" color="neutral" variant="soft" icon="i-lucide-upload" label="Upload" @click="logoIconInput?.click()" />
@@ -152,7 +152,7 @@ async function resetAppearanceToDefaults() {
             <div class="flex items-center gap-3 rounded-lg border border-dashed border-hull p-3">
               <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded bg-surface-2">
                 <img v-if="appearance.faviconUrl" :src="appearance.faviconUrl" alt="" class="max-h-full max-w-full object-contain">
-                <DockHubLogo v-else variant="icon" size="sm" />
+                <KNetraHubLogo v-else variant="icon" size="sm" />
               </div>
               <div class="flex flex-col gap-1.5">
                 <UButton size="xs" color="neutral" variant="soft" icon="i-lucide-upload" label="Upload" @click="faviconInput?.click()" />
@@ -165,7 +165,7 @@ async function resetAppearanceToDefaults() {
             <div class="flex items-center gap-3 rounded-lg border border-dashed border-hull p-3">
               <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded bg-surface-2">
                 <img v-if="appearance.pwaIconUrl" :src="appearance.pwaIconUrl" alt="" class="max-h-full max-w-full object-contain">
-                <DockHubLogo v-else variant="icon" size="sm" />
+                <KNetraHubLogo v-else variant="icon" size="sm" />
               </div>
               <div class="flex flex-col gap-1.5">
                 <UButton size="xs" color="neutral" variant="soft" icon="i-lucide-upload" label="Upload" @click="pwaIconInput?.click()" />
@@ -198,11 +198,11 @@ async function resetAppearanceToDefaults() {
         </h3>
         <div class="overflow-hidden rounded-lg border border-hull">
           <div class="flex items-center gap-3 border-b border-hull-soft bg-ink px-4 py-3">
-            <DockHubLogo variant="icon" class="size-8 shrink-0" />
+            <KNetraHubLogo variant="icon" class="size-8 shrink-0" />
             <span class="font-display text-sm font-semibold tracking-tight text-foam">{{ appearance.appName }}</span>
           </div>
           <div class="space-y-3 bg-surface p-4">
-            <DockHubLogo size="sm" />
+            <KNetraHubLogo size="sm" />
             <div class="flex flex-wrap gap-2">
               <UButton color="primary" label="Primary action" icon="i-lucide-rocket" />
               <UButton color="primary" variant="soft" label="Soft" />

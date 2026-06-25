@@ -6,7 +6,7 @@ const { can } = useAuth()
 const { prefs } = usePreferences()
 const toast = useToast()
 
-const viewMode = useLocalStorage<ServiceViewMode>('dockhub:services:view', 'cards')
+const viewMode = useLocalStorage<ServiceViewMode>('knetrahub:services:view', 'cards')
 const viewOptions: Array<{ value: ServiceViewMode; icon: string; label: string }> = [
   { value: 'cards', icon: 'i-lucide-layout-grid', label: 'Card' },
   { value: 'list', icon: 'i-lucide-list', label: 'List' }

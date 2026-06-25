@@ -13,7 +13,7 @@ const ALGO = 'aes-256-gcm'
 
 function deriveKey(): Buffer {
   const secret = useRuntimeConfig().jwtSecret
-  return createHash('sha256').update('dockhub:secrets:v1:' + secret).digest()
+  return createHash('sha256').update('knetrahub:secrets:v1:' + secret).digest()
 }
 
 /** Encrypts plaintext for storage. Always produces a "v1:"-prefixed value. */

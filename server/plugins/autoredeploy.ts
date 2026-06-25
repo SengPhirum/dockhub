@@ -3,7 +3,7 @@ import { withServiceSpec } from '../utils/serviceMutation'
 import { AUTOREDEPLOY_LABEL, parseImageRef, fetchRemoteDigest, extractPinnedDigest } from '../utils/registryClient'
 import { audit } from '../utils/store'
 
-// Swarmpit-style "autoredeploy": services opted in via the dockhub.autoredeploy
+// Swarmpit-style "autoredeploy": services opted in via the knetrahub.autoredeploy
 // label get their pinned image digest compared against the registry's
 // current digest for the same tag, on an interval - if it changed, the
 // service is updated to re-pull and re-pin. No "last seen digest" state is
