@@ -29,10 +29,29 @@ const appCaption = computed(() => {
   return key ? getModuleRegistry().find((m) => m.key === key)?.name : undefined
 })
 
+// An item is active when its `to` is the *longest* path-prefix of the current
+// route. Longest-match (rather than "any prefix") is what stops an app's
+// Overview link (e.g. /net) from staying highlighted on every /net/* page,
+// while still keeping a section (e.g. /net/devices) lit on its detail pages
+// (/net/devices/:id).
+const allTargets = computed(() => visibleGroups.value.flatMap((g) => g.items.map((i) => i.to)))
+
+const activeTarget = computed(() => {
+  const path = route.path
+  let best: string | null = null
+  for (const to of allTargets.value) {
+    const matches = to.includes('#')
+      ? path + route.hash === to
+      : to === '/'
+        ? path === '/'
+        : path === to || path.startsWith(`${to}/`)
+    if (matches && (best === null || to.length > best.length)) best = to
+  }
+  return best
+})
+
 function isActive(to: string) {
-  if (to === '/') return route.path === '/'
-  if (to.includes('#')) return route.path + route.hash === to
-  return route.path.startsWith(to)
+  return activeTarget.value === to
 }
 </script>
 

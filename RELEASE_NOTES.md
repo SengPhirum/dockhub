@@ -1,6 +1,6 @@
 # KNetraHub v0.1.1
 
-Date: 2026-06-25 UTC
+Date: 2026-06-30 UTC
 
 ## Docker Images
 
@@ -11,11 +11,16 @@ Date: 2026-06-25 UTC
 
 ## Source
 
-- Commit: `a0593e2`
+- Commit: `ac5a2af`
 - Previous tag: none
 
 ## Changes
 
+- feat: add support for developer-specific corporate/AV root CAs in Docker setup (ac5a2af)
+- feat: add network sensors page with real-time monitoring and filtering (05b9708)
+- feat: add caption support to KNetraHubLogo and integrate app name in SidebarNav (8457afc)
+- chore: update release notes for v0.1.1 with recent changes and commits (92568bb)
+- fix: open API docs in new tab, tidy branding, fix Docker pnpm build (d4d6334)
 - chore: migrate to pnpm, rebrand to KNetraHub, and enhance README (a0593e2)
 - docs: refactor README with structured Table of Contents, updated feature descriptions, and enhanced architectural overview (d75285a)
 - Update .env example (84c573b)
@@ -53,11 +58,28 @@ Date: 2026-06-25 UTC
 The working tree had uncommitted changes before this release script ran.
 
 ```text
- M Dockerfile
  M RELEASE_NOTES.md
- M app/components/DocsSidebar.vue
- M app/layouts/default.vue
- M app/pages/documentation.vue
+ M app/components/SidebarNav.vue
+ M app/pages/net/devices/[id].vue
+ M app/pages/net/devices/index.vue
+ M app/pages/net/index.vue
+ M package.json
+ M pnpm-lock.yaml
  M release-notes/v0.1.1.md
- M server/api/swagger/index.get.ts
+ M release.sh
+ M server/api/net/devices/[id].put.ts
+ M server/api/net/devices/index.post.ts
+ M server/plugins/netPoller.ts
+ M server/utils/db.ts
+ M server/utils/metrics.ts
+ M server/utils/netMonitor.ts
+ M server/utils/store.ts
+?? app/components/NetSnmpFields.vue
+?? app/components/net/
+?? app/composables/useNetData.ts
+?? app/utils/netDashboards.ts
+?? app/utils/netSnmp.ts
+?? server/api/net/dashboards/
+?? server/api/net/metrics.get.ts
+?? server/utils/netDashboards.ts
 ```

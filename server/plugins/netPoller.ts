@@ -9,6 +9,7 @@ import {
   mapLimit,
   type SnmpOpts
 } from '../utils/netMonitor'
+import { recordNetSample } from '../utils/metrics'
 
 /**
  * Real Network poller. On each cycle it ICMP-pings every device, and for SNMP
@@ -75,7 +76,14 @@ async function pollDevice(device: any, cfg: NetConfig) {
     const opts: SnmpOpts = {
       community: device.snmp_community || cfg.snmpCommunity,
       version: device.snmp_version || cfg.snmpVersion,
-      timeoutMs: cfg.snmpTimeoutMs
+      timeoutMs: cfg.snmpTimeoutMs,
+      // SNMPv3 credentials (only used when version === 'v3').
+      secLevel: device.snmp_sec_level || undefined,
+      authUser: device.snmp_auth_user || undefined,
+      authProtocol: device.snmp_auth_protocol || undefined,
+      authPassword: device.snmp_auth_password || undefined,
+      privProtocol: device.snmp_priv_protocol || undefined,
+      privPassword: device.snmp_priv_password || undefined
     }
     const sys = await snmpGetSystem(device.ip, opts)
     if (sys) {
@@ -98,6 +106,9 @@ async function pollDevice(device: any, cfg: NetConfig) {
   )
 
   await upsertPingSensor(device.id, result.rttMs)
+
+  // Time-series history for the /net dashboard latency + availability graphs.
+  await recordNetSample(device.id, result.rttMs, result.alive ? 1 : 0)
 
   if (device.status && device.status !== newStatus) {
     await handleStatusChange(device, newStatus, now)

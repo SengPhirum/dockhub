@@ -10,6 +10,11 @@ AGENT_IMAGE_NAME="${AGENT_IMAGE_NAME:-}"
 VERSION_TAG_PREFIX="${VERSION_TAG_PREFIX:-}"
 RELEASE_NOTES_DIR="${RELEASE_NOTES_DIR:-release-notes}"
 LATEST_RELEASE_NOTES="${LATEST_RELEASE_NOTES:-RELEASE_NOTES.md}"
+# Corporate / antivirus root CA (Kaspersky, Zscaler, ...) to trust during the
+# image build so pnpm install can fetch through a TLS-intercepting proxy. The
+# Dockerfile reads it as the `npm_ca` build secret. Defaults to the same cert
+# the dev swarm image uses (docker/dev/certs/), auto-detected below if unset.
+NPM_CA_FILE="${NPM_CA_FILE:-}"
 
 BUMP="patch"
 CUSTOM_VERSION=""
@@ -50,6 +55,9 @@ Environment overrides:
   VERSION_TAG_PREFIX=
   RELEASE_NOTES_DIR=release-notes
   LATEST_RELEASE_NOTES=RELEASE_NOTES.md
+  NPM_CA_FILE=                 Root CA to trust during the build (for a
+                              TLS-intercepting proxy). Defaults to the first
+                              docker/dev/certs/*.crt if present.
 
 Examples:
   ./release.sh
@@ -320,9 +328,30 @@ cp "${release_notes_file}" "${LATEST_RELEASE_NOTES}"
 
 log "Release notes written to ${release_notes_file}"
 log "Latest release note copied to ${LATEST_RELEASE_NOTES}"
+
+# Default to the dev swarm's root CA so a build behind a TLS-intercepting proxy
+# (e.g. Kaspersky) works out of the box; otherwise pnpm install fails with
+# SELF_SIGNED_CERT_IN_CHAIN. No cert present (clean network) -> build normally.
+if [[ -z "${NPM_CA_FILE}" ]]; then
+  for candidate in docker/dev/certs/*.crt; do
+    if [[ -f "${candidate}" ]]; then
+      NPM_CA_FILE="${candidate}"
+      break
+    fi
+  done
+fi
+
+build_secret_args=()
+if [[ -n "${NPM_CA_FILE}" ]]; then
+  [[ -f "${NPM_CA_FILE}" ]] || fail "NPM_CA_FILE does not exist: ${NPM_CA_FILE}"
+  log "Trusting npm CA from ${NPM_CA_FILE} during the image build"
+  build_secret_args+=(--secret "id=npm_ca,src=${NPM_CA_FILE}")
+fi
+
 log "Building ${version_image} and ${latest_image}"
 
 "${DOCKER_BIN}" build \
+  ${build_secret_args[@]+"${build_secret_args[@]}"} \
   -t "${version_image}" \
   -t "${latest_image}" \
   .

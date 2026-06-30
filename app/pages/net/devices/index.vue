@@ -34,7 +34,8 @@ const newDevice = ref({
   poll_method: 'snmp',
   snmp_version: 'v2c',
   snmp_community: 'public',
-  category: 'network'
+  category: 'network',
+  ...defaultSnmpV3()
 })
 
 async function addDevice() {
@@ -78,7 +79,7 @@ async function confirmDelete() {
       <div class="flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div class="flex items-center gap-2 w-full sm:w-auto">
           <UInput v-model="search" icon="i-lucide-search" placeholder="Search hostname or IP..." class="w-full sm:w-64" />
-          <USelect v-model="categoryFilter" :options="categories" />
+          <USelect v-model="categoryFilter" :items="categories" value-key="value" label-key="label" />
         </div>
       </div>
 
@@ -137,9 +138,8 @@ async function confirmDelete() {
     </div>
 
     <!-- Add Device Modal -->
-    <UModal v-model="isAddModalOpen">
-      <div class="p-6">
-        <h3 class="text-lg font-semibold text-foam mb-4">Add Device</h3>
+    <UModal v-model:open="isAddModalOpen" title="Add Device">
+      <template #body>
         <div class="space-y-4">
           <UFormField label="Hostname">
             <UInput v-model="newDevice.hostname" placeholder="sw-core-01" class="w-full" />
@@ -148,27 +148,22 @@ async function confirmDelete() {
             <UInput v-model="newDevice.ip" placeholder="10.0.0.1" class="w-full" />
           </UFormField>
           <UFormField label="Category">
-            <USelect v-model="newDevice.category" :options="categories.slice(1)" class="w-full" />
+            <USelect v-model="newDevice.category" :items="categories.slice(1)" value-key="value" label-key="label" class="w-full" />
           </UFormField>
           <UFormField label="Polling Method">
-            <USelect v-model="newDevice.poll_method" :options="[{value:'snmp', label:'SNMP'}, {value:'ping', label:'Ping Only'}]" class="w-full" />
+            <USelect v-model="newDevice.poll_method" :items="[{value:'snmp', label:'SNMP'}, {value:'ping', label:'Ping Only'}]" value-key="value" label-key="label" class="w-full" />
           </UFormField>
           <template v-if="newDevice.poll_method === 'snmp'">
-            <div class="grid grid-cols-2 gap-4">
-              <UFormField label="SNMP Version">
-                <USelect v-model="newDevice.snmp_version" :options="[{value:'v1', label:'v1'}, {value:'v2c', label:'v2c'}, {value:'v3', label:'v3'}]" class="w-full" />
-              </UFormField>
-              <UFormField label="Community">
-                <UInput v-model="newDevice.snmp_community" type="password" placeholder="public" class="w-full" />
-              </UFormField>
-            </div>
+            <NetSnmpFields :form="newDevice" />
           </template>
         </div>
-        <div class="mt-6 flex justify-end gap-3">
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-3 w-full">
           <UButton variant="ghost" @click="isAddModalOpen = false">Cancel</UButton>
           <UButton color="primary" @click="addDevice">Add Device</UButton>
         </div>
-      </div>
+      </template>
     </UModal>
 
     <!-- Delete confirmation -->

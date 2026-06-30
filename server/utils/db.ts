@@ -298,6 +298,17 @@ async function runMigrations(): Promise<void> {
     ALTER TABLE net_devices ADD COLUMN IF NOT EXISTS last_polled TEXT;
     ALTER TABLE net_devices ADD COLUMN IF NOT EXISTS last_rtt_ms REAL;
 
+    -- SNMPv3 credentials (used when snmp_version = 'v3'; snmp_community is the
+    -- v1/v2c equivalent). Stored as the net-snmp protocol keys so the poller can
+    -- map them directly (sec level: noAuthNoPriv|authNoPriv|authPriv;
+    -- auth: md5|sha|sha256|sha512; priv: des|aes|aes256b).
+    ALTER TABLE net_devices ADD COLUMN IF NOT EXISTS snmp_sec_level TEXT;
+    ALTER TABLE net_devices ADD COLUMN IF NOT EXISTS snmp_auth_user TEXT;
+    ALTER TABLE net_devices ADD COLUMN IF NOT EXISTS snmp_auth_protocol TEXT;
+    ALTER TABLE net_devices ADD COLUMN IF NOT EXISTS snmp_auth_password TEXT;
+    ALTER TABLE net_devices ADD COLUMN IF NOT EXISTS snmp_priv_protocol TEXT;
+    ALTER TABLE net_devices ADD COLUMN IF NOT EXISTS snmp_priv_password TEXT;
+
     -- Interface counter snapshots so the poller can derive bit-rate between polls.
     ALTER TABLE net_interfaces ADD COLUMN IF NOT EXISTS if_index INTEGER;
     ALTER TABLE net_interfaces ADD COLUMN IF NOT EXISTS last_in_octets BIGINT;
@@ -329,6 +340,21 @@ async function runMigrations(): Promise<void> {
       created_at TEXT NOT NULL,
       created_by TEXT
     );
+
+    -- Per-user customizable PRTG-style overview dashboards. layout is a JSON
+    -- array of widgets ({ i, x, y, w, h, type, config }) driving the drag/resize
+    -- grid on /net; owner is users.id (one user has many dashboards).
+    CREATE TABLE IF NOT EXISTS net_dashboards (
+      id TEXT PRIMARY KEY,
+      owner TEXT NOT NULL,
+      name TEXT NOT NULL,
+      layout TEXT NOT NULL DEFAULT '[]',
+      is_default BOOLEAN NOT NULL DEFAULT false,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_net_dashboards_owner ON net_dashboards (owner);
 
     -- Server Module (Zabbix MVP)
     CREATE TABLE IF NOT EXISTS server_hosts (

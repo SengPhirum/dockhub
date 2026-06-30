@@ -154,9 +154,24 @@ async function runMetricsMigrations(db: Pool, retentionDays: number): Promise<vo
   await db.query(`SELECT create_hypertable('service_status_events', 'time', if_not_exists => TRUE);`)
   await db.query(`CREATE INDEX IF NOT EXISTS idx_service_status_events_service_time ON service_status_events (service_id, time DESC);`)
 
+  await db.query(`
+    -- net_metrics: per-device Network-module sample, one row per device per
+    -- poll cycle (see server/plugins/netPoller.ts). up = 1/0 ICMP reachability;
+    -- rtt_ms is the ICMP round-trip. Powers the /net dashboard latency +
+    -- availability graphs via /api/net/metrics.
+    CREATE TABLE IF NOT EXISTS net_metrics (
+      time TIMESTAMPTZ NOT NULL,
+      device_id TEXT NOT NULL,
+      rtt_ms DOUBLE PRECISION,
+      up SMALLINT
+    );
+  `)
+  await db.query(`SELECT create_hypertable('net_metrics', 'time', if_not_exists => TRUE);`)
+  await db.query(`CREATE INDEX IF NOT EXISTS idx_net_metrics_device_time ON net_metrics (device_id, time DESC);`)
+
   // Retention: $1 = NUXT_METRICS_RETENTION_DAYS (default 30). INTERVAL literals
   // can't be parameterized directly, so multiply a 1-day interval by an int param.
-  for (const table of ['node_metrics', 'container_metrics', 'disk_usage', 'network_usage', 'node_heartbeat', 'service_status_events']) {
+  for (const table of ['node_metrics', 'container_metrics', 'disk_usage', 'network_usage', 'node_heartbeat', 'service_status_events', 'net_metrics']) {
     await db.query(
       `SELECT add_retention_policy('${table}', INTERVAL '1 day' * $1::int, if_not_exists => TRUE);`,
       [retentionDays]
@@ -217,6 +232,23 @@ export async function recordMetrics(report: AgentReportForMetrics): Promise<void
     }
   } catch (err) {
     console.error('[metrics] failed to record agent report', err)
+  }
+}
+
+/** Best-effort: never throws. Records one Network-module device sample (ICMP
+ * reachability + latency) per poll cycle for the /net dashboard graphs. Like
+ * recordMetrics, it calls migrateMetrics() defensively (memoized) so an early
+ * poll can't race the hypertable creation on a fresh boot. */
+export async function recordNetSample(deviceId: string, rttMs: number | null, up: number): Promise<void> {
+  try {
+    const db = getDb()
+    await migrateMetrics(db, useRuntimeConfig().metrics.retentionDays)
+    await db.query(
+      `INSERT INTO net_metrics (time, device_id, rtt_ms, up) VALUES ($1, $2, $3, $4)`,
+      [new Date(), deviceId, rttMs, up]
+    )
+  } catch (err) {
+    console.error('[metrics] failed to record net sample', err)
   }
 }
 

@@ -440,6 +440,12 @@ export async function deleteRegistry(id: string): Promise<void> {
 // ─── app settings ─────────────────────────────────────────────────────────────
 
 export async function getAppSetting(key: string): Promise<string | null> {
+  // Defensive: app_settings is read by unauthenticated visitors (login-screen
+  // branding via appearanceSettings, auth-provider config) which can land in
+  // the first moment after a fresh deploy, before server/plugins/db.ts's
+  // migrate() has finished - otherwise the query hits "relation app_settings
+  // does not exist". migrate() is memoized, so this is a no-op once done.
+  await migrate()
   const { rows } = await getDb().query('SELECT value FROM app_settings WHERE key = $1', [key])
   return rows[0]?.value ?? null
 }

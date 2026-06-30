@@ -20,18 +20,28 @@ const settingsForm = reactive({
   poll_method: '',
   snmp_version: '',
   snmp_community: '',
-  category: ''
+  category: '',
+  ...defaultSnmpV3()
 })
 
 watch(device, (val) => {
   if (val) {
+    const v3 = defaultSnmpV3()
     Object.assign(settingsForm, {
       hostname: val.hostname,
       ip: val.ip,
       poll_method: val.poll_method,
       snmp_version: val.snmp_version,
       snmp_community: val.snmp_community,
-      category: val.category
+      category: val.category,
+      // Fall back to v3 defaults so the selects always have a valid value even
+      // for devices created before SNMPv3 support (null columns).
+      snmp_sec_level: val.snmp_sec_level || v3.snmp_sec_level,
+      snmp_auth_user: val.snmp_auth_user || v3.snmp_auth_user,
+      snmp_auth_protocol: val.snmp_auth_protocol || v3.snmp_auth_protocol,
+      snmp_auth_password: val.snmp_auth_password || v3.snmp_auth_password,
+      snmp_priv_protocol: val.snmp_priv_protocol || v3.snmp_priv_protocol,
+      snmp_priv_password: val.snmp_priv_password || v3.snmp_priv_password
     })
   }
 }, { immediate: true })
@@ -202,19 +212,14 @@ async function saveSettings() {
             <UInput v-model="settingsForm.ip" class="w-full" />
           </UFormField>
           <UFormField label="Category">
-            <USelect v-model="settingsForm.category" :options="[{value:'network', label:'Network'}, {value:'server', label:'Server'}, {value:'storage', label:'Storage'}, {value:'iot', label:'IoT'}, {value:'ping-only', label:'Ping Only'}]" class="w-full" />
+            <USelect v-model="settingsForm.category" :items="[{value:'network', label:'Network'}, {value:'server', label:'Server'}, {value:'storage', label:'Storage'}, {value:'iot', label:'IoT'}, {value:'ping-only', label:'Ping Only'}]" value-key="value" label-key="label" class="w-full" />
           </UFormField>
-          <div class="grid grid-cols-2 gap-4 pt-4 border-t border-surface">
+          <div class="pt-4 border-t border-surface space-y-4">
             <UFormField label="Polling Method">
-              <USelect v-model="settingsForm.poll_method" :options="[{value:'snmp', label:'SNMP'}, {value:'ping', label:'Ping Only'}]" class="w-full" />
+              <USelect v-model="settingsForm.poll_method" :items="[{value:'snmp', label:'SNMP'}, {value:'ping', label:'Ping Only'}]" value-key="value" label-key="label" class="w-full" />
             </UFormField>
             <template v-if="settingsForm.poll_method === 'snmp'">
-              <UFormField label="SNMP Version">
-                <USelect v-model="settingsForm.snmp_version" :options="[{value:'v1', label:'v1'}, {value:'v2c', label:'v2c'}, {value:'v3', label:'v3'}]" class="w-full" />
-              </UFormField>
-              <UFormField label="Community" class="col-span-2">
-                <UInput v-model="settingsForm.snmp_community" type="password" class="w-full" />
-              </UFormField>
+              <NetSnmpFields :form="settingsForm" />
             </template>
           </div>
           <div class="pt-6 flex justify-end">
