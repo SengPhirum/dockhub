@@ -3,7 +3,7 @@ import type { Permission } from '../utils/permissions'
 export type ModuleType = 'local'
 
 /**
- * Describes one KNetraHub subsystem (Dock, Network, Server, IP Management)
+ * Describes one KNetraHub subsystem (Dock, Monitoring, IP Management)
  * for the app launcher and the contextual sidebar. Every module is now served
  * in-process by this app (SPA pages under app/pages + Nitro API routes); the
  * former Module-Federation remote fields are gone. Frontend-only metadata -
@@ -11,9 +11,9 @@ export type ModuleType = 'local'
  * re-validates the same permission independently via requireApp).
  */
 export interface ModuleDefinition {
-  /** Stable identifier, e.g. 'docker' | 'net' | 'server' | 'ipmgt'. */
+  /** Stable identifier, e.g. 'docker' | 'monitoring' | 'ipmgt'. */
   key: string
-  /** Display name, e.g. "Network". */
+  /** Display name, e.g. "Monitoring". */
   name: string
   description: string
   /** Route the launcher/sidebar links to and the module mounts at. */

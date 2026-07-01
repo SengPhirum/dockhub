@@ -128,13 +128,13 @@ async function confirmDelete() {
   <div>
     <PageHeader title="Devices" subtitle="Comprehensive inventory and status of all monitored assets" icon="i-lucide-server-crash">
       <template #actions>
-        <UButton v-if="hasApp('net')" icon="i-lucide-plus" size="sm" @click="openAdd">Add Device</UButton>
+        <UButton v-if="hasApp('monitoring')" icon="i-lucide-plus" size="sm" @click="openAdd">Add Device</UButton>
       </template>
     </PageHeader>
 
-    <div v-if="!hasApp('net')" class="panel flex flex-col items-center gap-2 p-10 text-center">
+    <div v-if="!hasApp('monitoring')" class="panel flex flex-col items-center gap-2 p-10 text-center">
       <UIcon name="i-lucide-lock" class="size-6 text-faint" />
-      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Net.</p>
+      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Monitoring.</p>
     </div>
 
     <div v-else class="space-y-4">
@@ -173,7 +173,7 @@ async function confirmDelete() {
                   </div>
                 </td>
                 <td class="px-4 py-3">
-                  <NuxtLink :to="`/net/devices/${dev.id}`" class="font-medium text-foam hover:text-beacon transition">{{ dev.hostname }}</NuxtLink>
+                  <NuxtLink :to="`/monitoring/network/devices/${dev.id}`" class="font-medium text-foam hover:text-beacon transition">{{ dev.hostname }}</NuxtLink>
                   <div class="font-mono text-xs text-faint mt-0.5">{{ dev.ip }}</div>
                 </td>
                 <td class="px-4 py-3">
@@ -189,7 +189,7 @@ async function confirmDelete() {
                 <td class="px-4 py-3 text-right">
                   <div class="flex items-center justify-end gap-1">
                     <UButton
-                      v-if="hasApp('net')"
+                      v-if="hasApp('monitoring')"
                       size="xs"
                       variant="ghost"
                       :color="dev.monitoring_enabled === false ? 'success' : 'neutral'"
@@ -198,8 +198,8 @@ async function confirmDelete() {
                       :aria-label="dev.monitoring_enabled === false ? 'Resume monitoring' : 'Pause monitoring'"
                       @click="toggleMonitoring(dev)"
                     />
-                    <UButton v-if="hasApp('net')" size="xs" variant="ghost" color="error" icon="i-lucide-trash-2" aria-label="Delete device" @click="deleteTarget = dev" />
-                    <UButton :to="`/net/devices/${dev.id}`" size="xs" variant="ghost" icon="i-lucide-chevron-right" />
+                    <UButton v-if="hasApp('monitoring')" size="xs" variant="ghost" color="error" icon="i-lucide-trash-2" aria-label="Delete device" @click="deleteTarget = dev" />
+                    <UButton :to="`/monitoring/network/devices/${dev.id}`" size="xs" variant="ghost" icon="i-lucide-chevron-right" />
                   </div>
                 </td>
               </tr>

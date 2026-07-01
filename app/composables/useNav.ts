@@ -54,63 +54,62 @@ const DOCK_GROUPS: NavGroup[] = [
   }
 ]
 
-// The Network app's navigation (PRTG-style monitoring). Shown only while the
-// user is inside the Network app; items gated by the user's per-app net tier.
-const NET_GROUPS: NavGroup[] = [
+// The Monitoring app's navigation (merged Network + Server). Shown only while
+// the user is inside the Monitoring app; items gated by the user's per-app
+// monitoring tier. Network (PRTG-style) and Server (Zabbix-style) are sections
+// within the one app; the data still lives under /api/net and /api/server.
+const MONITORING_GROUPS: NavGroup[] = [
   {
-    label: 'Monitoring',
+    label: 'Overview',
     items: [
-      { label: 'Overview', to: '/net',         icon: 'i-lucide-radar',  permission: 'net.view' },
-      { label: 'Devices',  to: '/net/devices', icon: 'i-lucide-router', permission: 'net.view' },
-      { label: 'Sensors',  to: '/net/sensors', icon: 'i-lucide-gauge',  permission: 'net.view' },
-      { label: 'Maps',     to: '/net/maps',    icon: 'i-lucide-map',    permission: 'net.view' }
+      { label: 'Overview', to: '/monitoring', icon: 'i-lucide-radar', permission: 'monitoring.view' }
     ]
   },
   {
-    label: 'Traffic & Logs',
+    label: 'Network',
     items: [
-      { label: 'Alerts',  to: '/net/alerts', icon: 'i-lucide-bell-ring',        permission: 'net.view' },
-      { label: 'NetFlow', to: '/net/flows',  icon: 'i-lucide-arrow-left-right', permission: 'net.view' },
-      { label: 'Syslog',  to: '/net/syslog', icon: 'i-lucide-scroll-text',      permission: 'net.view' },
-      { label: 'Groups',  to: '/net/groups', icon: 'i-lucide-folder-tree',      permission: 'net.view' }
+      { label: 'Dashboard', to: '/monitoring/network',         icon: 'i-lucide-network', permission: 'monitoring.view' },
+      { label: 'Devices',   to: '/monitoring/network/devices', icon: 'i-lucide-router',  permission: 'monitoring.view' },
+      { label: 'Sensors',   to: '/monitoring/network/sensors', icon: 'i-lucide-gauge',   permission: 'monitoring.view' },
+      { label: 'Maps',      to: '/monitoring/network/maps',    icon: 'i-lucide-map',     permission: 'monitoring.view' }
     ]
   },
   {
-    label: 'Infrastructure',
+    label: 'Network Traffic & Logs',
     items: [
-      { label: 'Discovery', to: '/net/discovery', icon: 'i-lucide-scan-line',   permission: 'net.view' },
-      { label: 'Probes',    to: '/net/probes',    icon: 'i-lucide-radio-tower', permission: 'net.view' }
+      { label: 'Alerts',  to: '/monitoring/network/alerts', icon: 'i-lucide-bell-ring',        permission: 'monitoring.view' },
+      { label: 'NetFlow', to: '/monitoring/network/flows',  icon: 'i-lucide-arrow-left-right', permission: 'monitoring.view' },
+      { label: 'Syslog',  to: '/monitoring/network/syslog', icon: 'i-lucide-scroll-text',      permission: 'monitoring.view' },
+      { label: 'Groups',  to: '/monitoring/network/groups', icon: 'i-lucide-folder-tree',      permission: 'monitoring.view' }
     ]
   },
   {
-    label: 'Insights',
+    label: 'Network Infrastructure',
     items: [
-      { label: 'Reports',     to: '/net/reports', icon: 'i-lucide-file-text', permission: 'net.view' },
-      { label: 'AI Insights', to: '/net/ai',      icon: 'i-lucide-sparkles',  permission: 'net.view' }
+      { label: 'Discovery', to: '/monitoring/network/discovery', icon: 'i-lucide-scan-line',   permission: 'monitoring.view' },
+      { label: 'Probes',    to: '/monitoring/network/probes',    icon: 'i-lucide-radio-tower', permission: 'monitoring.view' }
     ]
   },
   {
-    label: 'Network admin',
+    label: 'Network Insights',
     items: [
-      { label: 'Settings', to: '/net/settings', icon: 'i-lucide-settings', permission: 'net.manage' }
+      { label: 'Reports',     to: '/monitoring/network/reports', icon: 'i-lucide-file-text', permission: 'monitoring.view' },
+      { label: 'AI Insights', to: '/monitoring/network/ai',      icon: 'i-lucide-sparkles',  permission: 'monitoring.view' }
     ]
-  }
-]
-
-// The Server app's navigation (Zabbix-style monitoring).
-const SERVER_GROUPS: NavGroup[] = [
+  },
   {
     label: 'Server',
     items: [
-      { label: 'Overview', to: '/server',          icon: 'i-lucide-radar',          permission: 'server.view' },
-      { label: 'Hosts',    to: '/server/hosts',    icon: 'i-lucide-server',         permission: 'server.view' },
-      { label: 'Problems', to: '/server/problems', icon: 'i-lucide-triangle-alert', permission: 'server.view' }
+      { label: 'Dashboard', to: '/monitoring/server',          icon: 'i-lucide-server-cog',     permission: 'monitoring.view' },
+      { label: 'Hosts',     to: '/monitoring/server/hosts',    icon: 'i-lucide-server',         permission: 'monitoring.view' },
+      { label: 'Problems',  to: '/monitoring/server/problems', icon: 'i-lucide-triangle-alert', permission: 'monitoring.view' }
     ]
   },
   {
-    label: 'Server admin',
+    label: 'Monitoring admin',
     items: [
-      { label: 'Settings', to: '/server/settings', icon: 'i-lucide-settings', permission: 'server.manage' }
+      { label: 'Network settings', to: '/monitoring/network/settings', icon: 'i-lucide-settings', permission: 'monitoring.manage' },
+      { label: 'Server settings',  to: '/monitoring/server/settings',  icon: 'i-lucide-settings', permission: 'monitoring.manage' }
     ]
   }
 ]
@@ -218,8 +217,7 @@ export function useNav(): ComputedRef<NavGroup[]> {
       // Inside an app: back-to-launcher link + the app's own nav.
       // groups.push({ label: '', items: [{ label: 'Apps', to: '/', icon: 'i-lucide-layout-grid' }] })
       if (currentApp === 'docker') groups.push(...DOCK_GROUPS)
-      else if (currentApp === 'net') groups.push(...NET_GROUPS)
-      else if (currentApp === 'server') groups.push(...SERVER_GROUPS)
+      else if (currentApp === 'monitoring') groups.push(...MONITORING_GROUPS)
       else if (currentApp === 'ipmgt') groups.push(...IPMGT_GROUPS)
     } else if (inPreferences) {
       // User preferences: the sectioned preferences menu (no Apps link).

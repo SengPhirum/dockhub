@@ -1031,7 +1031,7 @@ const netConfigGuides = [
     icon: 'i-lucide-scan-line',
     summary: 'Auto-discovery runs a real ICMP/SNMP sweep of a CIDR and creates a device (plus an ICMP-latency sensor) for each responder; the poller then fills in interfaces. A device going unreachable raises a critical alert; recovery clears it.',
     options: [
-      ['Scan input', 'A CIDR (≤ 1024 hosts/scan) + method: Ping, SNMP, or Ping+SNMP, with an optional SNMP community. Scanning needs the Network operator tier (net.scan).'],
+      ['Scan input', 'A CIDR (≤ 1024 hosts/scan) + method: Ping, SNMP, or Ping+SNMP, with an optional SNMP community. Scanning needs the Monitoring operator tier (monitoring.scan).'],
       ['Identification', 'SNMP responders are named from sysName and tagged with vendor/OS from sysObjectID/sysDescr; ping-only responders are added as Host.'],
       ['Probes', 'A single Local Probe (this server) collects data; new devices attach to it. Remote/distributed probes are a deployment concern, not fabricated.'],
       ['Alerts & delivery', 'Up/down transitions raise and clear alerts automatically. Delivery channels (Telegram/Teams/Webhook) are portal-wide — see General · System.']
@@ -1056,10 +1056,10 @@ const serverConfigGuides = [
       ['Agent', 'Each host records its monitoring agent (e.g. Zabbix agent) and availability state.'],
       ['Metrics', 'CPU, memory, and uptime per host drive overview and capacity views.'],
       ['Problems', 'Triggers raise problems with severity (High/Average/Warning) and an ack flag.'],
-      ['Access', 'Gated by the Server app tier; admin settings require server.manage.']
+      ['Access', 'Gated by the Monitoring app tier; admin settings require monitoring.manage.']
     ] as [string, string][],
     steps: [
-      'Open the Server app and confirm hosts report as Available.',
+      'Open Monitoring > Server and confirm hosts report as Available.',
       'Review CPU/memory pressure on the overview.',
       'Triage and acknowledge problems by severity.',
       'Use Server > Settings (admin) for app-level options.'
@@ -1113,8 +1113,8 @@ const CONFIG_MODULE_OF: Record<string, string> = {
 const configModuleGroups = [
   { id: 'general-system', eyebrow: 'General · System', title: 'System & main configuration', summary: 'Runtime, branding, and alert-delivery options that apply to the whole portal regardless of which app you use.' },
   { id: 'docker', eyebrow: 'Docker module', title: 'Docker engine & stack versioning', summary: 'Connect to the Swarm manager and store compose files in GitLab for history and rollback.' },
-  { id: 'net', eyebrow: 'Network module', title: 'Network monitoring configuration', summary: 'Polling/SNMP per device, auto-discovery, probes, and alert rules for the Network app.' },
-  { id: 'server', eyebrow: 'Server module', title: 'Server monitoring configuration', summary: 'Agents, host metrics, and problem triggers for the Server app.' },
+  { id: 'net', eyebrow: 'Network module', title: 'Network monitoring configuration', summary: 'Polling/SNMP per device, auto-discovery, probes, and alert rules in the Monitoring app.' },
+  { id: 'server', eyebrow: 'Server module', title: 'Server monitoring configuration', summary: 'Agents, host metrics, and problem triggers in the Monitoring app.' },
   { id: 'ipmgt', eyebrow: 'IP Management module', title: 'IPAM configuration', summary: 'Subnets, VLANs, and address assignment for the IP Management app.' },
   { id: 'general-auth', eyebrow: 'General · Authentication', title: 'Authentication & role mapping', summary: 'Local accounts, OIDC SSO, and LDAP/AD — portal-wide identity that applies across every app.' }
 ]
@@ -1163,7 +1163,7 @@ const apiGroups = [
     id: 'api-net',
     label: 'Network module',
     icon: 'i-lucide-network',
-    desc: 'Devices, sensors, probes, discovery, reports, alerts, and AI insights for the Network app.',
+    desc: 'Devices, sensors, probes, discovery, reports, alerts, and AI insights in the Monitoring app.',
     endpoints: [
       ['GET', '/net/devices', 'List devices'],
       ['POST', '/net/devices', 'Add a device'],
@@ -1179,7 +1179,7 @@ const apiGroups = [
     id: 'api-server',
     label: 'Server module',
     icon: 'i-lucide-server-cog',
-    desc: 'Host inventory and active problems for the Server app.',
+    desc: 'Host inventory and active problems in the Monitoring app.',
     endpoints: [
       ['GET', '/server/hosts', 'List hosts'],
       ['GET', '/server/hosts/{id}', 'Host detail and metrics'],

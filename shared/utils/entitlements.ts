@@ -11,7 +11,7 @@ import {
  * (see shared/utils/permissions.ts). Which realm roles grant which tier is
  * configured in Settings and stored in the DB (server/utils/appRoles.ts).
  */
-export type AppKey = keyof typeof APP_PERMISSIONS // 'docker' | 'net' | 'server' | 'ipmgt'
+export type AppKey = keyof typeof APP_PERMISSIONS // 'docker' | 'monitoring' | 'ipmgt'
 export type AppTier = 'viewer' | 'operator' | 'admin'
 
 export const APP_KEYS = Object.keys(APP_PERMISSIONS) as AppKey[]

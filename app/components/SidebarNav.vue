@@ -22,7 +22,7 @@ const primaryGroups = computed(() => visibleGroups.value.filter((g) => g.label !
 const documentationGroup = computed(() => visibleGroups.value.find((g) => g.label === 'Documentation'))
 
 // Inside an app, the KNetraHub wordmark keeps the portal identity and the app's
-// name (Docker / Network / Server / IP Management) reads as a caption beneath it;
+// name (Docker / Monitoring / IP Management) reads as a caption beneath it;
 // elsewhere the caption is empty and only the brand wordmark shows.
 const appCaption = computed(() => {
   const key = appKeyForRoute(route.path)
@@ -31,9 +31,9 @@ const appCaption = computed(() => {
 
 // An item is active when its `to` is the *longest* path-prefix of the current
 // route. Longest-match (rather than "any prefix") is what stops an app's
-// Overview link (e.g. /net) from staying highlighted on every /net/* page,
-// while still keeping a section (e.g. /net/devices) lit on its detail pages
-// (/net/devices/:id).
+// Overview link (e.g. /monitoring) from staying highlighted on every
+// /monitoring/* page, while still keeping a section (e.g. /monitoring/network/devices)
+// lit on its detail pages (/monitoring/network/devices/:id).
 const allTargets = computed(() => visibleGroups.value.flatMap((g) => g.items.map((i) => i.to)))
 
 const activeTarget = computed(() => {

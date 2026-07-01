@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { GridLayout, GridItem } from 'grid-layout-plus'
-import DashboardWidget from '../../components/net/DashboardWidget.vue'
+import DashboardWidget from '../../../components/net/DashboardWidget.vue'
 import {
   WIDGET_TYPES, DASHBOARD_TEMPLATES, widgetMeta, instantiateLayout, makeWidget,
   DASHBOARD_COLS, DASHBOARD_ROW_HEIGHT, type Widget, type WidgetType
-} from '../../utils/netDashboards'
+} from '../../../utils/netDashboards'
 
 const { hasApp } = useAuth()
 
@@ -127,7 +127,7 @@ async function setDefault() {
 <template>
   <div>
     <PageHeader title="Network Dashboard" subtitle="PRTG-style monitoring overview" icon="i-lucide-layout-dashboard">
-      <template v-if="hasApp('net') && hasDashboards" #actions>
+      <template v-if="hasApp('monitoring') && hasDashboards" #actions>
         <div class="flex flex-wrap items-center gap-2">
           <USelect
             v-model="selectedId"
@@ -158,9 +158,9 @@ async function setDefault() {
       </template>
     </PageHeader>
 
-    <div v-if="!hasApp('net')" class="panel flex flex-col items-center gap-2 p-10 text-center">
+    <div v-if="!hasApp('monitoring')" class="panel flex flex-col items-center gap-2 p-10 text-center">
       <UIcon name="i-lucide-lock" class="size-6 text-faint" />
-      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Net.</p>
+      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Monitoring.</p>
     </div>
 
     <!-- Empty state: no dashboards yet → template gallery to create the first -->

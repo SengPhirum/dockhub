@@ -14,7 +14,7 @@ const recent = computed<any[]>(() => (alerts.value || []).slice(0, 25))
       />
       <div class="min-w-0 flex-1">
         <p class="truncate text-sm font-medium text-foam">
-          <NuxtLink :to="`/net/devices/${alert.device_id}`" class="hover:underline">{{ alert.device_name || 'Unknown' }}</NuxtLink>
+          <NuxtLink :to="`/monitoring/network/devices/${alert.device_id}`" class="hover:underline">{{ alert.device_name || 'Unknown' }}</NuxtLink>
         </p>
         <p class="truncate text-xs text-(--color-muted)">{{ alert.message }}</p>
         <p class="mt-0.5 text-[11px] text-faint">{{ new Date(alert.timestamp).toLocaleString() }}</p>

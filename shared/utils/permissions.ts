@@ -21,10 +21,9 @@ export const PERMISSIONS = [
   'dashboard.view', 'alert.view', 'alert.manage', 'audit.view', 'report.view', 'report.export',
   // KNetraHub-Docker
   'docker.view', 'docker.manage', 'docker.deploy', 'docker.audit',
-  // KNetraHub-Net
-  'net.view', 'net.manage', 'net.scan', 'net.configure', 'net.alert',
-  // KNetraHub-Server
-  'server.view', 'server.manage', 'server.metrics', 'server.service.manage', 'server.alert',
+  // KNetraHub-Monitoring (merged Network + Server)
+  'monitoring.view', 'monitoring.manage', 'monitoring.scan', 'monitoring.configure',
+  'monitoring.metrics', 'monitoring.service.manage', 'monitoring.alert',
   // KNetraHub-IPMgt
   'ipmgt.view', 'ipmgt.create', 'ipmgt.update', 'ipmgt.delete', 'ipmgt.assign', 'ipmgt.export',
   // Admin
@@ -40,21 +39,16 @@ export type Permission = typeof PERMISSIONS[number]
  */
 type AppTierPermissions = { viewer: Permission[]; operator: Permission[]; admin: Permission[] }
 
-export const APP_PERMISSIONS: Record<'docker' | 'net' | 'server' | 'ipmgt', AppTierPermissions> = {
+export const APP_PERMISSIONS: Record<'docker' | 'monitoring' | 'ipmgt', AppTierPermissions> = {
   docker: {
     viewer: ['docker.view'],
     operator: ['docker.manage', 'docker.deploy'],
     admin: ['docker.audit']
   },
-  net: {
-    viewer: ['net.view'],
-    operator: ['net.scan'],
-    admin: ['net.manage', 'net.configure', 'net.alert']
-  },
-  server: {
-    viewer: ['server.view'],
-    operator: ['server.metrics'],
-    admin: ['server.manage', 'server.service.manage', 'server.alert']
+  monitoring: {
+    viewer: ['monitoring.view'],
+    operator: ['monitoring.scan', 'monitoring.metrics'],
+    admin: ['monitoring.manage', 'monitoring.configure', 'monitoring.service.manage', 'monitoring.alert']
   },
   ipmgt: {
     viewer: ['ipmgt.view', 'ipmgt.export'],

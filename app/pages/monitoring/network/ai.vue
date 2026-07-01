@@ -13,9 +13,9 @@ onMounted(() => {
   <div>
     <PageHeader title="AI Insights" subtitle="Anomaly detection, similar sensors, and smart recommendations" icon="i-lucide-sparkles" />
 
-    <div v-if="!hasApp('net')" class="panel flex flex-col items-center gap-2 p-10 text-center">
+    <div v-if="!hasApp('monitoring')" class="panel flex flex-col items-center gap-2 p-10 text-center">
       <UIcon name="i-lucide-lock" class="size-6 text-faint" />
-      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Net.</p>
+      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Monitoring.</p>
     </div>
 
     <div v-else-if="status === 'pending' && !data" class="panel p-10 text-center text-faint">Analyzing monitoring data...</div>

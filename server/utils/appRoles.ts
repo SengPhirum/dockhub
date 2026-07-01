@@ -17,11 +17,36 @@ const KEY = 'app_role_map'
 
 const TIERS: AppTier[] = ['viewer', 'operator', 'admin']
 
+/**
+ * The old `net` (Network) and `server` (Server) apps were merged into one
+ * `monitoring` app. Fold any legacy stored/posted role lists for those keys into
+ * `monitoring` (union per tier) so admins don't lose their identity-provider →
+ * access mapping across the merge. Idempotent: once `monitoring` is persisted,
+ * the legacy keys are gone and this is a no-op. Non-mutating (returns a copy).
+ */
+function foldLegacyMonitoring(obj: Record<string, any>): Record<string, any> {
+  const legacy = [obj.net, obj.server].filter((v) => v && typeof v === 'object')
+  if (legacy.length === 0) return obj
+  const out = { ...obj }
+  const monitoring: Record<string, string[]> = { ...(out.monitoring && typeof out.monitoring === 'object' ? out.monitoring : {}) }
+  for (const tier of TIERS) {
+    const merged = new Set<string>()
+    for (const src of [monitoring[tier], ...legacy.map((l) => l[tier])]) {
+      if (Array.isArray(src)) for (const r of src) merged.add(String(r).trim())
+    }
+    monitoring[tier] = [...merged].filter(Boolean)
+  }
+  out.monitoring = monitoring
+  delete out.net
+  delete out.server
+  return out
+}
+
 /** Coerce arbitrary stored/posted JSON into a well-formed AppRoleMap. */
 export function sanitizeAppRoleMap(input: unknown): AppRoleMap {
   const map = emptyAppRoleMap()
   if (!input || typeof input !== 'object') return map
-  const obj = input as Record<string, any>
+  const obj = foldLegacyMonitoring(input as Record<string, any>)
   for (const app of APP_KEYS) {
     const appCfg = obj[app]
     if (!appCfg || typeof appCfg !== 'object') continue

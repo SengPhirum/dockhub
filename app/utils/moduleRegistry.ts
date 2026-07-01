@@ -21,26 +21,15 @@ export function getModuleRegistry(): ModuleDefinition[] {
       order: 10
     },
     {
-      key: 'net',
-      name: 'Network',
-      description: 'Network monitoring - device inventory, ping/SNMP checks, interface bandwidth, and alerts.',
-      routePath: '/net',
-      icon: 'i-lucide-network',
-      permission: 'net.view',
+      key: 'monitoring',
+      name: 'Monitoring',
+      description: 'Unified infrastructure monitoring - network devices (ping/SNMP) and server hosts (CPU/memory/disk), with sensors, alerts, and problems.',
+      routePath: '/monitoring',
+      icon: 'i-lucide-activity',
+      permission: 'monitoring.view',
       type: 'local',
       enabled: true,
       order: 20
-    },
-    {
-      key: 'server',
-      name: 'Server',
-      description: 'Server monitoring - host inventory, CPU/memory/disk metrics, triggers, and problems.',
-      routePath: '/server',
-      icon: 'i-lucide-server-cog',
-      permission: 'server.view',
-      type: 'local',
-      enabled: true,
-      order: 30
     },
     {
       key: 'ipmgt',

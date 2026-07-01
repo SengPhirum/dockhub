@@ -1,6 +1,6 @@
 # KNetraHub v0.1.1
 
-Date: 2026-06-30 UTC
+Date: 2026-07-01 UTC
 
 ## Docker Images
 
@@ -11,11 +11,12 @@ Date: 2026-06-30 UTC
 
 ## Source
 
-- Commit: `8d20205`
+- Commit: `3d8875c`
 - Previous tag: none
 
 ## Changes
 
+- feat: Network module enhancements + Docker registry image browser (3d8875c)
 - feat: add SNMP v3 support with credential management in device forms feat: implement network dashboards with CRUD operations and metrics tracking feat: enhance metrics collection for network devices with latency and availability data chore: update release notes for v0.1.1 with recent changes and commits fix: ensure app settings are accessible post-deployment without migration errors (8d20205)
 - chore: remove unused knetrahub-net-api service (19c36a4)
 - feat: add support for developer-specific corporate/AV root CAs in Docker setup (ac5a2af)
@@ -60,31 +61,36 @@ Date: 2026-06-30 UTC
 The working tree had uncommitted changes before this release script ran.
 
 ```text
- M NETWORK_MONITORING.md
- M RELEASE_NOTES.md
+ M app/components/SidebarNav.vue
+ M app/components/net/widgets/AlertsListWidget.vue
+ M app/components/net/widgets/DeviceAvailabilityWidget.vue
  M app/composables/useNav.ts
  M app/pages/documentation.vue
- M app/pages/net/alerts.vue
- M app/pages/net/devices/[id].vue
- M app/pages/net/devices/index.vue
- M app/pages/net/groups.vue
- M app/pages/net/settings.vue
- M app/pages/registries/index.vue
+RM app/pages/net/ai.vue -> app/pages/monitoring/network/ai.vue
+RM app/pages/net/alerts.vue -> app/pages/monitoring/network/alerts.vue
+RM app/pages/net/devices/[id].vue -> app/pages/monitoring/network/devices/[id].vue
+RM app/pages/net/devices/index.vue -> app/pages/monitoring/network/devices/index.vue
+RM app/pages/net/discovery.vue -> app/pages/monitoring/network/discovery.vue
+RM app/pages/net/flows.vue -> app/pages/monitoring/network/flows.vue
+RM app/pages/net/groups.vue -> app/pages/monitoring/network/groups.vue
+RM app/pages/net/index.vue -> app/pages/monitoring/network/index.vue
+RM app/pages/net/maps.vue -> app/pages/monitoring/network/maps.vue
+RM app/pages/net/probes.vue -> app/pages/monitoring/network/probes.vue
+RM app/pages/net/reports.vue -> app/pages/monitoring/network/reports.vue
+RM app/pages/net/sensors.vue -> app/pages/monitoring/network/sensors.vue
+RM app/pages/net/settings.vue -> app/pages/monitoring/network/settings.vue
+RM app/pages/net/syslog.vue -> app/pages/monitoring/network/syslog.vue
+RM app/pages/server/hosts/[id].vue -> app/pages/monitoring/server/hosts/[id].vue
+RM app/pages/server/hosts/index.vue -> app/pages/monitoring/server/hosts/index.vue
+RM app/pages/server/index.vue -> app/pages/monitoring/server/index.vue
+RM app/pages/server/problems.vue -> app/pages/monitoring/server/problems.vue
+RM app/pages/server/settings.vue -> app/pages/monitoring/server/settings.vue
  M app/utils/appRoutes.ts
- M release-notes/v0.1.1.md
- M server/plugins/netPoller.ts
- M server/utils/db.ts
- M server/utils/registryClient.ts
- M server/utils/store.ts
-?? app/pages/registry/
-?? app/utils/netCategories.ts
-?? app/utils/registryBrowser.ts
-?? server/api/net/alerts/
-?? server/api/net/devices/[id]/monitoring.post.ts
-?? server/api/net/groups.post.ts
-?? server/api/net/groups/
-?? server/api/net/templates.get.ts
-?? server/api/net/templates.post.ts
-?? server/api/net/templates/
-?? server/api/registries/[id]/
+ M app/utils/moduleRegistry.ts
+ M server/utils/appRoles.ts
+ M shared/types/module.ts
+ M shared/utils/entitlements.ts
+ M shared/utils/permissions.ts
+?? app/middleware/legacy-monitoring.global.ts
+?? app/pages/monitoring/index.vue
 ```

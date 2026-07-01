@@ -64,9 +64,9 @@ const typeIcon: Record<string, string> = {
   <div>
     <PageHeader title="Sensors" subtitle="Every monitored measurement across the fleet" icon="i-lucide-gauge" />
 
-    <div v-if="!hasApp('net')" class="panel flex flex-col items-center gap-2 p-10 text-center">
+    <div v-if="!hasApp('monitoring')" class="panel flex flex-col items-center gap-2 p-10 text-center">
       <UIcon name="i-lucide-lock" class="size-6 text-faint" />
-      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Net.</p>
+      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Monitoring.</p>
     </div>
 
     <div v-else class="space-y-6">
@@ -135,7 +135,7 @@ const typeIcon: Record<string, string> = {
                   <div class="text-xs text-faint uppercase mt-0.5">{{ s.sensor_type }}</div>
                 </td>
                 <td class="px-4 py-3">
-                  <NuxtLink :to="`/net/devices/${s.device_id}`" class="text-foam hover:text-beacon transition">{{ s.device_name }}</NuxtLink>
+                  <NuxtLink :to="`/monitoring/network/devices/${s.device_id}`" class="text-foam hover:text-beacon transition">{{ s.device_name }}</NuxtLink>
                   <div class="font-mono text-xs text-faint">{{ s.device_ip }}</div>
                 </td>
                 <td class="px-4 py-3">

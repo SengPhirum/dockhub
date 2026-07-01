@@ -8,9 +8,9 @@ const { data: problems } = useAsyncData('serverProblemsList', () => $fetch('/api
   <div>
     <PageHeader title="Problems" subtitle="Active alerts and triggers" icon="i-lucide-alert-triangle" />
 
-    <div v-if="!hasApp('server')" class="panel flex flex-col items-center gap-2 p-10 text-center">
+    <div v-if="!hasApp('monitoring')" class="panel flex flex-col items-center gap-2 p-10 text-center">
       <UIcon name="i-lucide-lock" class="size-6 text-faint" />
-      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Server.</p>
+      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Monitoring.</p>
     </div>
 
     <div v-else class="panel">

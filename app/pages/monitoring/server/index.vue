@@ -28,9 +28,9 @@ const recentProblems = computed(() => {
   <div>
     <PageHeader title="Server Dashboard" subtitle="Overview of server infrastructure health" icon="i-lucide-server-cog" />
 
-    <div v-if="!hasApp('server')" class="panel flex flex-col items-center gap-2 p-10 text-center">
+    <div v-if="!hasApp('monitoring')" class="panel flex flex-col items-center gap-2 p-10 text-center">
       <UIcon name="i-lucide-lock" class="size-6 text-faint" />
-      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Server.</p>
+      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Monitoring.</p>
     </div>
 
     <div v-else class="space-y-6">
@@ -53,7 +53,7 @@ const recentProblems = computed(() => {
         <section class="panel p-5">
           <div class="flex items-center justify-between mb-4">
             <h2 class="font-display text-sm font-semibold uppercase tracking-wider text-(--color-muted)">Top Problems</h2>
-            <NuxtLink to="/server/problems" class="text-xs text-beacon hover:underline">View all -></NuxtLink>
+            <NuxtLink to="/monitoring/server/problems" class="text-xs text-beacon hover:underline">View all -></NuxtLink>
           </div>
           <div class="space-y-3">
             <div v-for="problem in recentProblems" :key="problem.id" class="flex flex-col gap-1 p-3 rounded-lg bg-surface-2 border border-surface">

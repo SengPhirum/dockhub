@@ -3,9 +3,11 @@ import type { AppKey } from '../../shared/utils/entitlements'
 /**
  * Which page routes belong to which app. The "Dock" app keeps the original
  * Docker Swarm page paths (no mass URL rewrite); its dashboard lives at /dock.
- * Network/Server/IP Management are now in-process SPA modules, each owning a
- * route subtree under /net, /server and /ipmgt respectively. Used by the
- * contextual sidebar (useNav) and the client access guard (route-access).
+ * Monitoring (merged Network + Server) and IP Management are in-process SPA
+ * modules owning the /monitoring and /ipmgt route subtrees respectively.
+ * Legacy /net and /server links are redirected to /monitoring/network and
+ * /monitoring/server by legacy-monitoring.global.ts. Used by the contextual
+ * sidebar (useNav) and the client access guard (route-access).
  */
 export const DOCKER_ROUTE_PREFIXES = [
   '/docker',
@@ -22,8 +24,7 @@ export const DOCKER_ROUTE_PREFIXES = [
   '/registries'
 ]
 
-export const NET_ROUTE_PREFIXES = ['/net']
-export const SERVER_ROUTE_PREFIXES = ['/server']
+export const MONITORING_ROUTE_PREFIXES = ['/monitoring']
 export const IPMGT_ROUTE_PREFIXES = ['/ipmgt']
 
 function matches(path: string, prefix: string): boolean {
@@ -33,8 +34,7 @@ function matches(path: string, prefix: string): boolean {
 /** The app a given route belongs to, or null for portal pages (launcher, settings…). */
 export function appKeyForRoute(path: string): AppKey | null {
   if (DOCKER_ROUTE_PREFIXES.some((p) => matches(path, p))) return 'docker'
-  if (NET_ROUTE_PREFIXES.some((p) => matches(path, p))) return 'net'
-  if (SERVER_ROUTE_PREFIXES.some((p) => matches(path, p))) return 'server'
+  if (MONITORING_ROUTE_PREFIXES.some((p) => matches(path, p))) return 'monitoring'
   if (IPMGT_ROUTE_PREFIXES.some((p) => matches(path, p))) return 'ipmgt'
   return null
 }

@@ -1,13 +1,14 @@
 <script setup lang="ts">
-// Network app administrator settings. Real features now live here: device
-// onboarding templates (managed CRUD), the canonical device-category reference
-// (shared by the Add Device + Settings forms), and a fleet/poller summary.
-// Gated by the net admin tier (net.manage), mirroring the Dock app's settings.
+// Network administrator settings (Monitoring app). Real features now live here:
+// device onboarding templates (managed CRUD), the canonical device-category
+// reference (shared by the Add Device + Settings forms), and a fleet/poller
+// summary. Gated by the monitoring admin tier (monitoring.manage), mirroring the
+// Dock app's settings.
 definePageMeta({
   middleware: [
     function () {
       const { hasPermission } = useAuth()
-      if (!hasPermission('net.manage')) return navigateTo('/net')
+      if (!hasPermission('monitoring.manage')) return navigateTo('/monitoring/network')
     }
   ]
 })
@@ -107,9 +108,9 @@ const fleet = computed(() => {
 
 <template>
   <div>
-    <PageHeader title="Network settings" subtitle="Administrator settings for the Network app" icon="i-lucide-settings">
+    <PageHeader title="Network settings" subtitle="Administrator settings for network monitoring" icon="i-lucide-settings">
       <template #actions>
-        <UButton icon="i-lucide-arrow-left" color="neutral" variant="soft" label="Back to Network" to="/net" />
+        <UButton icon="i-lucide-arrow-left" color="neutral" variant="soft" label="Back to Network" to="/monitoring/network" />
       </template>
     </PageHeader>
 

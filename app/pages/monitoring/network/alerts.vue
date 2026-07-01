@@ -29,9 +29,9 @@ async function toggleAck(alert: any) {
   <div>
     <PageHeader title="Alerts" subtitle="Active and historical alerting" icon="i-lucide-bell" />
 
-    <div v-if="!hasApp('net')" class="panel flex flex-col items-center gap-2 p-10 text-center">
+    <div v-if="!hasApp('monitoring')" class="panel flex flex-col items-center gap-2 p-10 text-center">
       <UIcon name="i-lucide-lock" class="size-6 text-faint" />
-      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Net.</p>
+      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Monitoring.</p>
     </div>
 
     <div v-else class="space-y-6">
@@ -88,7 +88,7 @@ async function toggleAck(alert: any) {
                   </UBadge>
                 </td>
                 <td class="px-4 py-3">
-                  <NuxtLink :to="`/net/devices/${alert.device_id}`" class="font-medium text-foam hover:text-beacon transition">{{ alert.device_name }}</NuxtLink>
+                  <NuxtLink :to="`/monitoring/network/devices/${alert.device_id}`" class="font-medium text-foam hover:text-beacon transition">{{ alert.device_name }}</NuxtLink>
                 </td>
                 <td class="px-4 py-3 text-foam">{{ alert.rule_name }}</td>
                 <td class="px-4 py-3">{{ alert.message }}</td>
@@ -98,10 +98,10 @@ async function toggleAck(alert: any) {
                     <UBadge size="xs" variant="subtle" color="info" icon="i-lucide-check-check">
                       Acknowledged{{ alert.acknowledged_by ? ` · ${alert.acknowledged_by}` : '' }}
                     </UBadge>
-                    <UButton v-if="hasApp('net')" size="xs" variant="ghost" color="neutral" :loading="acking === alert.id" @click="toggleAck(alert)">Un-acknowledge</UButton>
+                    <UButton v-if="hasApp('monitoring')" size="xs" variant="ghost" color="neutral" :loading="acking === alert.id" @click="toggleAck(alert)">Un-acknowledge</UButton>
                   </div>
                   <UButton
-                    v-else-if="hasApp('net') && alert.status === 'active'"
+                    v-else-if="hasApp('monitoring') && alert.status === 'active'"
                     size="xs" variant="soft" color="info" icon="i-lucide-check"
                     :loading="acking === alert.id" @click="toggleAck(alert)"
                   >Acknowledge</UButton>

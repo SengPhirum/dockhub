@@ -39,9 +39,9 @@ async function runScan() {
   <div>
     <PageHeader title="Auto-Discovery" subtitle="Scan a range and create devices and sensors from templates" icon="i-lucide-scan-line" />
 
-    <div v-if="!hasApp('net')" class="panel flex flex-col items-center gap-2 p-10 text-center">
+    <div v-if="!hasApp('monitoring')" class="panel flex flex-col items-center gap-2 p-10 text-center">
       <UIcon name="i-lucide-lock" class="size-6 text-faint" />
-      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Net.</p>
+      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Monitoring.</p>
     </div>
 
     <div v-else class="space-y-6">
@@ -50,23 +50,23 @@ async function runScan() {
         <h2 class="font-display text-sm font-semibold uppercase tracking-wider text-(--color-muted) mb-4">New Discovery Scan</h2>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:items-end">
           <UFormField label="IP Range (CIDR)" hint="≤ 1024 hosts">
-            <UInput v-model="cidr" placeholder="192.168.1.0/24" class="w-full" :disabled="!hasPermission('net.scan')" />
+            <UInput v-model="cidr" placeholder="192.168.1.0/24" class="w-full" :disabled="!hasPermission('monitoring.scan')" />
           </UFormField>
           <UFormField label="Method">
-            <USelect v-model="method" :items="methods" value-key="value" label-key="label" class="w-full" :disabled="!hasPermission('net.scan')" />
+            <USelect v-model="method" :items="methods" value-key="value" label-key="label" class="w-full" :disabled="!hasPermission('monitoring.scan')" />
           </UFormField>
           <UFormField label="SNMP community" hint="optional">
-            <UInput v-model="community" type="password" placeholder="default (public)" class="w-full" :disabled="!hasPermission('net.scan') || method === 'ping'" />
+            <UInput v-model="community" type="password" placeholder="default (public)" class="w-full" :disabled="!hasPermission('monitoring.scan') || method === 'ping'" />
           </UFormField>
           <UButton
             icon="i-lucide-radar"
             :loading="scanning"
-            :disabled="!hasPermission('net.scan')"
+            :disabled="!hasPermission('monitoring.scan')"
             @click="runScan"
           >{{ scanning ? 'Scanning…' : 'Start Scan' }}</UButton>
         </div>
-        <p v-if="!hasPermission('net.scan')" class="mt-3 text-xs text-faint">
-          Running discovery requires the Network operator tier.
+        <p v-if="!hasPermission('monitoring.scan')" class="mt-3 text-xs text-faint">
+          Running discovery requires the Monitoring operator tier.
         </p>
         <div v-if="scanError" class="mt-4 flex items-center gap-3 rounded-lg bg-red-500/10 ring-1 ring-red-500/20 px-4 py-3 text-sm">
           <UIcon name="i-lucide-alert-triangle" class="size-5 text-red-500 shrink-0" />
@@ -79,7 +79,7 @@ async function runScan() {
             <strong>{{ lastResult.found }}</strong> responded,
             added <strong>{{ lastResult.added }}</strong> new device{{ lastResult.added === 1 ? '' : 's' }}.
           </span>
-          <NuxtLink to="/net/devices" class="ml-auto text-xs text-beacon hover:underline shrink-0">View inventory →</NuxtLink>
+          <NuxtLink to="/monitoring/network/devices" class="ml-auto text-xs text-beacon hover:underline shrink-0">View inventory →</NuxtLink>
         </div>
       </div>
 

@@ -122,7 +122,7 @@ function downloadBackup(backup: any) {
       <template #actions>
         <div class="flex items-center gap-3">
           <UButton
-            v-if="hasApp('net') && device"
+            v-if="hasApp('monitoring') && device"
             size="sm"
             variant="soft"
             :color="device.monitoring_enabled === false ? 'success' : 'neutral'"
@@ -130,16 +130,16 @@ function downloadBackup(backup: any) {
             :loading="toggling"
             @click="toggleMonitoring"
           >{{ device.monitoring_enabled === false ? 'Resume' : 'Pause' }}</UButton>
-          <NuxtLink to="/net/devices" class="text-sm font-medium text-(--color-muted) hover:text-foam flex items-center gap-1">
+          <NuxtLink to="/monitoring/network/devices" class="text-sm font-medium text-(--color-muted) hover:text-foam flex items-center gap-1">
             <UIcon name="i-lucide-arrow-left" class="size-4" /> Back to Inventory
           </NuxtLink>
         </div>
       </template>
     </PageHeader>
 
-    <div v-if="!hasApp('net')" class="panel flex flex-col items-center gap-2 p-10 text-center">
+    <div v-if="!hasApp('monitoring')" class="panel flex flex-col items-center gap-2 p-10 text-center">
       <UIcon name="i-lucide-lock" class="size-6 text-faint" />
-      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Net.</p>
+      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Monitoring.</p>
     </div>
 
     <div v-else-if="device" class="space-y-6">

@@ -15,7 +15,7 @@ function icon(cat: string) {
     <NuxtLink
       v-for="dev in devices"
       :key="dev.id"
-      :to="`/net/devices/${dev.id}`"
+      :to="`/monitoring/network/devices/${dev.id}`"
       class="flex w-28 shrink-0 flex-col items-center justify-center rounded-xl border p-3 transition"
       :class="dev.status === 'up'
         ? 'border-green-500/20 bg-green-500/5 hover:border-green-500/50'

@@ -31,15 +31,15 @@ const summary = computed(() => {
   <div>
     <PageHeader title="Probes" subtitle="Distributed data collectors reporting to the core" icon="i-lucide-radio-tower">
       <template #actions>
-        <NuxtLink to="/net/maps" class="text-sm font-medium text-(--color-muted) hover:text-foam flex items-center gap-1">
+        <NuxtLink to="/monitoring/network/maps" class="text-sm font-medium text-(--color-muted) hover:text-foam flex items-center gap-1">
           <UIcon name="i-lucide-map" class="size-4" /> View on map
         </NuxtLink>
       </template>
     </PageHeader>
 
-    <div v-if="!hasApp('net')" class="panel flex flex-col items-center gap-2 p-10 text-center">
+    <div v-if="!hasApp('monitoring')" class="panel flex flex-col items-center gap-2 p-10 text-center">
       <UIcon name="i-lucide-lock" class="size-6 text-faint" />
-      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Net.</p>
+      <p class="text-sm text-(--color-muted)">You don't have access to KNetraHub-Monitoring.</p>
     </div>
 
     <div v-else class="space-y-6">
