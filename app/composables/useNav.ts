@@ -38,27 +38,32 @@ const DOCK_GROUPS: NavGroup[] = [
   {
     label: 'Data',
     items: [
-      { label: 'Networks', to: '/networks', icon: 'i-lucide-network',        permission: 'docker.view' },
-      { label: 'Volumes',  to: '/volumes',  icon: 'i-lucide-hard-drive',     permission: 'docker.view' },
-      { label: 'Secrets',  to: '/secrets',  icon: 'i-lucide-key-round',      permission: 'docker.view' },
-      { label: 'Configs',  to: '/configs',  icon: 'i-lucide-file-cog',       permission: 'docker.view' },
-      { label: 'Registry', to: '/registry', icon: 'i-lucide-package-search', permission: 'docker.view' }
+      { label: 'Networks',   to: '/networks', icon: 'i-lucide-network',        permission: 'docker.view' },
+      { label: 'Volumes',    to: '/volumes',  icon: 'i-lucide-hard-drive',     permission: 'docker.view' },
+      { label: 'Secrets',    to: '/secrets',  icon: 'i-lucide-key-round',      permission: 'docker.view' },
+      { label: 'Configs',    to: '/configs',  icon: 'i-lucide-file-cog',       permission: 'docker.view' },
+      { label: 'Registries', to: '/registry', icon: 'i-lucide-package-search', permission: 'docker.view' }
     ]
   },
   {
-    label: 'Dock admin',
+    // Registries admin (add/verify/remove registry credentials) moved into a
+    // Settings tab (docker/settings.vue) rather than its own nav item/page.
+    label: 'Administration',
     items: [
-      { label: 'Registries', to: '/registries',      icon: 'i-lucide-package',  permission: 'docker.manage' },
-      { label: 'Settings',   to: '/docker/settings', icon: 'i-lucide-settings', permission: 'docker.manage' }
+      { label: 'Settings', to: '/docker/settings', icon: 'i-lucide-settings', permission: 'docker.manage' }
     ]
   }
 ]
 
 // The Monitoring app's navigation. Network (PRTG-style) and Server (Zabbix-style)
 // are NOT separate sections — the sidebar is one unified tree organised by
-// FUNCTION, interleaving network + server items under shared headers. Problems
-// are a single unified page (/monitoring/problems merges net alerts + server
-// problems). Data still lives under /api/net and /api/server underneath.
+// FUNCTION, interleaving network + server items under shared headers. Features
+// that exist in both domains are single unified pages, not duplicated per
+// domain: Problems (/monitoring/problems), Discovery (/monitoring/discovery),
+// Maps (/monitoring/maps), Groups (/monitoring/groups), and Settings
+// (/monitoring/settings) each show a `type`/domain tag per row/node/section
+// instead of living on separate routes. Data still lives under /api/net and
+// /api/server underneath.
 const MONITORING_GROUPS: NavGroup[] = [
   {
     label: 'Overview',
@@ -79,18 +84,16 @@ const MONITORING_GROUPS: NavGroup[] = [
   {
     label: 'Assets',
     items: [
-      { label: 'Devices',           to: '/monitoring/network/devices',   icon: 'i-lucide-router',    permission: 'monitoring.view' },
-      { label: 'Hosts',             to: '/monitoring/server/hosts',      icon: 'i-lucide-server',    permission: 'monitoring.view' },
-      { label: 'Discover network',  to: '/monitoring/network/discovery', icon: 'i-lucide-scan-line', permission: 'monitoring.view' },
-      { label: 'Discover servers',  to: '/monitoring/server/discovery',  icon: 'i-lucide-scan-line', permission: 'monitoring.view' }
+      { label: 'Devices',   to: '/monitoring/network/devices', icon: 'i-lucide-router',    permission: 'monitoring.view' },
+      { label: 'Hosts',     to: '/monitoring/server/hosts',     icon: 'i-lucide-server',    permission: 'monitoring.view' },
+      { label: 'Discovery', to: '/monitoring/discovery',        icon: 'i-lucide-scan-line', permission: 'monitoring.view' }
     ]
   },
   {
     label: 'Maps & Topology',
     items: [
-      { label: 'Network map', to: '/monitoring/network/maps', icon: 'i-lucide-map',         permission: 'monitoring.view' },
-      { label: 'Server map',  to: '/monitoring/server/maps',  icon: 'i-lucide-map',         permission: 'monitoring.view' },
-      { label: 'Probes',      to: '/monitoring/network/probes', icon: 'i-lucide-radio-tower', permission: 'monitoring.view' }
+      { label: 'Maps',   to: '/monitoring/maps',           icon: 'i-lucide-map',         permission: 'monitoring.view' },
+      { label: 'Probes', to: '/monitoring/network/probes', icon: 'i-lucide-radio-tower', permission: 'monitoring.view' }
     ]
   },
   {
@@ -112,20 +115,18 @@ const MONITORING_GROUPS: NavGroup[] = [
   {
     label: 'Configuration',
     items: [
-      { label: 'Device groups', to: '/monitoring/network/groups',     icon: 'i-lucide-folder-tree',     permission: 'monitoring.view' },
-      { label: 'Host groups',   to: '/monitoring/server/groups',      icon: 'i-lucide-folder-tree',     permission: 'monitoring.view' },
-      { label: 'Templates',     to: '/monitoring/server/templates',   icon: 'i-lucide-layout-template', permission: 'monitoring.view' },
-      { label: 'Triggers',      to: '/monitoring/server/triggers',    icon: 'i-lucide-zap',             permission: 'monitoring.view' },
-      { label: 'Alert rules',   to: '/monitoring/network/alerts',     icon: 'i-lucide-bell-ring',       permission: 'monitoring.view' },
-      { label: 'Maintenance',   to: '/monitoring/server/maintenance', icon: 'i-lucide-wrench',          permission: 'monitoring.view' },
-      { label: 'Actions',       to: '/monitoring/server/actions',     icon: 'i-lucide-bell-plus',       permission: 'monitoring.view' }
+      { label: 'Groups',       to: '/monitoring/groups',              icon: 'i-lucide-folder-tree',     permission: 'monitoring.view' },
+      { label: 'Templates',    to: '/monitoring/server/templates',    icon: 'i-lucide-layout-template', permission: 'monitoring.view' },
+      { label: 'Triggers',     to: '/monitoring/server/triggers',     icon: 'i-lucide-zap',             permission: 'monitoring.view' },
+      { label: 'Alert rules',  to: '/monitoring/network/alerts',      icon: 'i-lucide-bell-ring',       permission: 'monitoring.view' },
+      { label: 'Maintenance',  to: '/monitoring/server/maintenance',  icon: 'i-lucide-wrench',          permission: 'monitoring.view' },
+      { label: 'Actions',      to: '/monitoring/server/actions',      icon: 'i-lucide-bell-plus',       permission: 'monitoring.view' }
     ]
   },
   {
     label: 'Admin',
     items: [
-      { label: 'Network settings', to: '/monitoring/network/settings', icon: 'i-lucide-settings', permission: 'monitoring.manage' },
-      { label: 'Server settings',  to: '/monitoring/server/settings',  icon: 'i-lucide-settings', permission: 'monitoring.manage' }
+      { label: 'Settings', to: '/monitoring/settings', icon: 'i-lucide-settings', permission: 'monitoring.manage' }
     ]
   }
 ]

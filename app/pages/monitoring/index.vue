@@ -35,13 +35,14 @@ const srv = computed(() => {
 const netLinks = [
   { label: 'Devices', to: '/monitoring/network/devices', icon: 'i-lucide-router' },
   { label: 'Sensors', to: '/monitoring/network/sensors', icon: 'i-lucide-gauge' },
-  { label: 'Maps', to: '/monitoring/network/maps', icon: 'i-lucide-map' },
-  { label: 'Alerts', to: '/monitoring/network/alerts', icon: 'i-lucide-bell-ring' },
-  { label: 'Discovery', to: '/monitoring/network/discovery', icon: 'i-lucide-scan-line' }
+  { label: 'Maps', to: '/monitoring/maps', icon: 'i-lucide-map' },
+  { label: 'Problems', to: '/monitoring/problems', icon: 'i-lucide-triangle-alert' },
+  { label: 'Discovery', to: '/monitoring/discovery', icon: 'i-lucide-scan-line' }
 ]
 const srvLinks = [
   { label: 'Hosts', to: '/monitoring/server/hosts', icon: 'i-lucide-server' },
-  { label: 'Problems', to: '/monitoring/server/problems', icon: 'i-lucide-triangle-alert' }
+  { label: 'Problems', to: '/monitoring/problems', icon: 'i-lucide-triangle-alert' },
+  { label: 'Maps', to: '/monitoring/maps', icon: 'i-lucide-map' }
 ]
 </script>
 

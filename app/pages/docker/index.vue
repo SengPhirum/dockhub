@@ -3,7 +3,7 @@
 // former portal home; it moved to /dock when the home page became the app
 // launcher. Access is gated by the appAccess.global client middleware and the
 // server-side appAccess middleware (docker entitlement required).
-const { bytes, cpus } = useFormat()
+const { bytes } = useFormat()
 const { prefs } = usePreferences()
 
 const { data, status, error, refreshing, refresh } = useApiCache('dashboard', async () => {
@@ -268,43 +268,6 @@ function formatVcpu(value: number) {
           y-title="[%]"
         />
       </div>
-
-      <section class="panel mt-6 p-5">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="font-display text-sm font-semibold uppercase tracking-wider text-(--color-muted)">The fleet</h2>
-          <NuxtLink to="/nodes" class="text-xs text-beacon hover:underline">Manage nodes -></NuxtLink>
-        </div>
-        <div v-if="!d?.nodeList?.length" class="text-sm text-(--color-muted) py-2">No nodes visible.</div>
-        <div v-else class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <NuxtLink
-            v-for="node in d?.nodeList"
-            :key="node.id"
-            :to="`/nodes/${node.id}`"
-            class="panel-flush flex items-center gap-3 p-3.5 transition hover:ring-1 hover:ring-beacon/30"
-          >
-            <span
-              class="flex size-10 items-center justify-center rounded-lg ring-1"
-              :class="node.leader ? 'sonar bg-beacon/15 ring-beacon/40' : 'bg-surface-2 ring-hull'"
-            >
-              <UIcon
-                :name="node.role === 'manager' ? 'i-lucide-anchor' : 'i-lucide-box'"
-                class="size-5"
-                :class="node.leader ? 'text-beacon' : 'text-(--color-muted)'"
-              />
-            </span>
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-2">
-                <p class="truncate font-medium text-foam">{{ node.hostname || '-' }}</p>
-                <span v-if="node.leader" class="rounded bg-beacon/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-beacon">Leader</span>
-              </div>
-              <p class="mt-0.5 truncate font-mono text-xs text-faint">
-                {{ node.role || '-' }} &middot; {{ cpus(node.cpus) }} &middot; {{ bytes(node.memory) }}
-              </p>
-            </div>
-            <StatusBadge :state="node.state" />
-          </NuxtLink>
-        </div>
-      </section>
 
       <section class="panel mt-6 p-5">
         <h2 class="font-display text-sm font-semibold uppercase tracking-wider text-(--color-muted) mb-4">Task distribution</h2>

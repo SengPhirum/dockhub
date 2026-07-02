@@ -1,6 +1,6 @@
 # KNetraHub v0.1.1
 
-Date: 2026-07-01 UTC
+Date: 2026-07-02 UTC
 
 ## Docker Images
 
@@ -11,11 +11,12 @@ Date: 2026-07-01 UTC
 
 ## Source
 
-- Commit: `a665ae4`
+- Commit: `8fa4fb2`
 - Previous tag: none
 
 ## Changes
 
+- feat: deepen Monitoring maps/web/SLA + unify Network+Server nav and Problems (8fa4fb2)
 - feat: rebuild Monitoring app (Network+Server merge, sensor graphs, Zabbix server clone) (a665ae4)
 - feat: merge Network and Server modules into a unified Monitoring module with new routes and components feat: implement network settings page with device templates, categories, and poller summary feat: add syslog page for real-time device event logs feat: create host metrics page for server monitoring with detailed information feat: develop server dashboard with active problems and recent alerts overview feat: enhance permissions and roles for the new Monitoring module chore: update app routes to reflect the new Monitoring structure and remove legacy paths chore: refactor module registry to include Monitoring and remove old Network and Server entries fix: ensure proper access control for Monitoring features based on user permissions (29ed5f7)
 - feat: Network module enhancements + Docker registry image browser (3d8875c)
@@ -65,22 +66,45 @@ The working tree had uncommitted changes before this release script ran.
 ```text
  M RELEASE_NOTES.md
  M app/composables/useNav.ts
- M app/pages/monitoring/server/index.vue
- M app/pages/monitoring/server/maps.vue
- M app/pages/monitoring/server/services.vue
-RM app/pages/monitoring/server/web.vue -> app/pages/monitoring/server/web/index.vue
+ M app/middleware/legacy-monitoring.global.ts
+ M app/pages/docker/index.vue
+ M app/pages/docker/settings.vue
+ M app/pages/monitoring/index.vue
+ M app/pages/monitoring/network/devices/index.vue
+D  app/pages/monitoring/network/discovery.vue
+D  app/pages/monitoring/network/groups.vue
+D  app/pages/monitoring/network/maps.vue
+ M app/pages/monitoring/network/probes.vue
+ M app/pages/monitoring/network/sensors/index.vue
+D  app/pages/monitoring/network/settings.vue
+D  app/pages/monitoring/server/discovery.vue
+D  app/pages/monitoring/server/groups.vue
+ M app/pages/monitoring/server/hosts/index.vue
+D  app/pages/monitoring/server/maps.vue
+D  app/pages/monitoring/server/settings.vue
+ M app/pages/registries/index.vue
+ M app/pages/registry/index.vue
  M release-notes/v0.1.1.md
- M server/api/server/services/index.get.ts
- M server/api/server/web/index.post.ts
- M server/plugins/serverPoller.ts
- M server/utils/db.ts
-?? app/pages/monitoring/problems.vue
-?? app/pages/monitoring/server/web/[id].vue
-?? server/api/server/maps/[id].delete.ts
-?? server/api/server/maps/[id].get.ts
-?? server/api/server/maps/[id].put.ts
-?? server/api/server/maps/index.post.ts
-?? server/api/server/web/[id].get.ts
-?? server/api/server/web/[id]/
-?? server/api/server/web/steps/
+ M server/api/server/maps/[id].put.ts
+ M server/api/system/overview.get.ts
+?? app/pages/monitoring/discovery.vue
+?? app/pages/monitoring/groups.vue
+?? app/pages/monitoring/maps.vue
+?? app/pages/monitoring/settings.vue
+?? app/utils/fileIO.ts
+?? server/api/net/devices/export.get.ts
+?? server/api/net/devices/import.post.ts
+?? server/api/net/groups/export.get.ts
+?? server/api/net/groups/import.post.ts
+?? server/api/net/sensors/export.get.ts
+?? server/api/net/templates/export.get.ts
+?? server/api/net/templates/import.post.ts
+?? server/api/server/hostgroups/export.get.ts
+?? server/api/server/hostgroups/import.post.ts
+?? server/api/server/hosts/export.get.ts
+?? server/api/server/hosts/import.post.ts
+?? server/api/server/templates/[id]/export.get.ts
+?? server/api/server/templates/export.get.ts
+?? server/api/server/templates/import.post.ts
+?? server/utils/importExport.ts
 ```

@@ -31,7 +31,7 @@ const summary = computed(() => {
   <div>
     <PageHeader title="Probes" subtitle="Distributed data collectors reporting to the core" icon="i-lucide-radio-tower">
       <template #actions>
-        <NuxtLink to="/monitoring/network/maps" class="text-sm font-medium text-(--color-muted) hover:text-foam flex items-center gap-1">
+        <NuxtLink to="/monitoring/maps" class="text-sm font-medium text-(--color-muted) hover:text-foam flex items-center gap-1">
           <UIcon name="i-lucide-map" class="size-4" /> View on map
         </NuxtLink>
       </template>

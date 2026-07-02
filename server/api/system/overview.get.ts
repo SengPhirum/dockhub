@@ -54,19 +54,6 @@ export default defineEventHandler(async (event) => {
       stacks: stacks.length
     },
     taskStates,
-    capacity: { cpus: cpuNanos / 1e9, memoryBytes: memBytes },
-    nodeList: nodes.map((n) => ({
-      id: n.ID,
-      hostname: n.Description?.Hostname,
-      role: n.Spec?.Role,
-      availability: n.Spec?.Availability,
-      state: n.Status?.State,
-      leader: n.ManagerStatus?.Leader || false,
-      reachability: n.ManagerStatus?.Reachability,
-      addr: n.Status?.Addr,
-      engine: n.Description?.Engine?.EngineVersion,
-      cpus: (n.Description?.Resources?.NanoCPUs || 0) / 1e9,
-      memory: n.Description?.Resources?.MemoryBytes || 0
-    }))
+    capacity: { cpus: cpuNanos / 1e9, memoryBytes: memBytes }
   }
 })

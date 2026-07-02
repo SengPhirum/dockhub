@@ -14,6 +14,49 @@ onMounted(() => {
   onUnmounted(() => clearInterval(t))
 })
 
+// --- Export / Import ---------------------------------------------------------
+// Groups/templates round-trip by NAME (portable across environments); SNMP
+// passwords are never exported (see export.get.ts) - re-enter under Edit.
+const HOST_CSV_COLUMNS = ['name', 'ip', 'os', 'poll_method', 'snmp_version', 'snmp_community', 'snmp_sec_level', 'snmp_auth_user', 'groups', 'templates']
+async function exportHosts(format: 'json' | 'csv') {
+  const rows = await $fetch<any[]>('/api/server/hosts/export')
+  if (format === 'json') downloadJson(exportFilename('hosts', 'json'), rows)
+  else downloadText(exportFilename('hosts', 'csv'), toCsv(rows.map((r) => ({ ...r, groups: (r.groups || []).join(';'), templates: (r.templates || []).join(';') })), HOST_CSV_COLUMNS), 'text/csv')
+}
+const importing = ref(false)
+async function importHosts() {
+  const file = await pickAndReadFile('.json,.csv')
+  if (!file) return
+  importing.value = true
+  try {
+    const format = file.name.toLowerCase().endsWith('.csv') ? 'csv' : 'json'
+    const result = await $fetch<{ added: number; skipped: number; errors: { row: number; message: string }[] }>('/api/server/hosts/import', {
+      method: 'POST',
+      body: { format, content: file.text }
+    })
+    toast.add({
+      title: `Imported ${result.added} host${result.added === 1 ? '' : 's'}`,
+      description: result.skipped ? `${result.skipped} skipped (already exist)` : (result.errors[0]?.message ? `Row ${result.errors[0].row}: ${result.errors[0].message}` : undefined),
+      color: result.added ? 'primary' : 'warning',
+      icon: 'i-lucide-check'
+    })
+    await refresh()
+  } catch (e: any) {
+    toast.add({ title: 'Import failed', description: e?.data?.statusMessage, color: 'error' })
+  } finally {
+    importing.value = false
+  }
+}
+const importExportMenu = [
+  [
+    { label: 'Export as JSON', icon: 'i-lucide-file-json', onSelect: () => exportHosts('json') },
+    { label: 'Export as CSV', icon: 'i-lucide-file-spreadsheet', onSelect: () => exportHosts('csv') }
+  ],
+  [
+    { label: 'Import…', icon: 'i-lucide-upload', onSelect: importHosts }
+  ]
+]
+
 const groupItems = computed(() => (groups.value || []).map((g) => ({ value: g.id, label: g.name })))
 const templateItems = computed(() => (templates.value || []).map((t) => ({ value: t.id, label: t.name })))
 const pollMethods = [
@@ -115,7 +158,12 @@ function availLabel(h: any) {
   <div>
     <PageHeader title="Hosts" subtitle="Inventory of monitored servers (ICMP + SNMP)" icon="i-lucide-server">
       <template v-if="hasApp('monitoring') && canManage" #actions>
-        <UButton icon="i-lucide-plus" size="sm" @click="openCreate">Create host</UButton>
+        <div class="flex items-center gap-2">
+          <UDropdownMenu :items="importExportMenu" :content="{ align: 'end' }">
+            <UButton icon="i-lucide-import" color="neutral" variant="soft" size="sm" :loading="importing">Import / Export</UButton>
+          </UDropdownMenu>
+          <UButton icon="i-lucide-plus" size="sm" @click="openCreate">Create host</UButton>
+        </div>
       </template>
     </PageHeader>
 

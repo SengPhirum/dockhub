@@ -13,6 +13,19 @@ onMounted(() => {
 const search = ref('')
 const typeFilter = ref('all')
 
+// Export-only: sensors are derived from device polling, not hand-configured,
+// so there's nothing meaningful to "import" back into them.
+const SENSOR_CSV_COLUMNS = ['device_name', 'device_ip', 'name', 'sensor_type', 'current_value', 'unit', 'limit_low', 'limit_high']
+async function exportSensors(format: 'json' | 'csv') {
+  const data = await $fetch<any[]>('/api/net/sensors/export')
+  if (format === 'json') downloadJson(exportFilename('sensors', 'json'), data)
+  else downloadText(exportFilename('sensors', 'csv'), toCsv(data, SENSOR_CSV_COLUMNS), 'text/csv')
+}
+const exportMenu = [[
+  { label: 'Export as JSON', icon: 'i-lucide-file-json', onSelect: () => exportSensors('json') },
+  { label: 'Export as CSV', icon: 'i-lucide-file-spreadsheet', onSelect: () => exportSensors('csv') }
+]]
+
 // PRTG-style state derived from the device + the sensor's configured limits:
 // Paused (monitoring off) / Down (device down or reading out of limits) /
 // Warning (near the high limit) / Up. Null/absent limits mean "no bound".
@@ -84,7 +97,13 @@ const typeIcon: Record<string, string> = {
 
 <template>
   <div>
-    <PageHeader title="Sensors" subtitle="Every monitored measurement across the fleet — click a sensor for its history graph" icon="i-lucide-gauge" />
+    <PageHeader title="Sensors" subtitle="Every monitored measurement across the fleet — click a sensor for its history graph" icon="i-lucide-gauge">
+      <template v-if="hasApp('monitoring')" #actions>
+        <UDropdownMenu :items="exportMenu" :content="{ align: 'end' }">
+          <UButton icon="i-lucide-download" color="neutral" variant="soft" size="sm">Export</UButton>
+        </UDropdownMenu>
+      </template>
+    </PageHeader>
 
     <div v-if="!hasApp('monitoring')" class="panel flex flex-col items-center gap-2 p-10 text-center">
       <UIcon name="i-lucide-lock" class="size-6 text-faint" />

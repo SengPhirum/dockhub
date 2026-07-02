@@ -1,8 +1,52 @@
 <script setup lang="ts">
 const { hasApp } = useAuth()
+const toast = useToast()
 
 const { data: devices, status, refresh } = useAsyncData('netDevicesList', () => $fetch<any[]>('/api/net/devices'))
 const { data: templates } = useAsyncData('netDeviceTemplates', () => $fetch<any[]>('/api/net/templates'), { default: () => [] as any[] })
+
+// --- Export / Import ---------------------------------------------------------
+// SNMP passwords are never exported (see export.get.ts) - a re-imported device
+// keeps its other fields but needs credentials re-entered under Settings.
+const DEVICE_CSV_COLUMNS = ['hostname', 'ip', 'type', 'vendor', 'os', 'category', 'poll_method', 'snmp_version', 'snmp_community', 'snmp_sec_level', 'snmp_auth_user', 'snmp_priv_protocol']
+async function exportDevices(format: 'json' | 'csv') {
+  const rows = await $fetch<any[]>('/api/net/devices/export')
+  if (format === 'json') downloadJson(exportFilename('devices', 'json'), rows)
+  else downloadText(exportFilename('devices', 'csv'), toCsv(rows, DEVICE_CSV_COLUMNS), 'text/csv')
+}
+const importing = ref(false)
+async function importDevices() {
+  const file = await pickAndReadFile('.json,.csv')
+  if (!file) return
+  importing.value = true
+  try {
+    const format = file.name.toLowerCase().endsWith('.csv') ? 'csv' : 'json'
+    const result = await $fetch<{ added: number; skipped: number; errors: { row: number; message: string }[] }>('/api/net/devices/import', {
+      method: 'POST',
+      body: { format, content: file.text }
+    })
+    toast.add({
+      title: `Imported ${result.added} device${result.added === 1 ? '' : 's'}`,
+      description: result.skipped ? `${result.skipped} skipped (already exist)` : (result.errors[0]?.message ? `Row ${result.errors[0].row}: ${result.errors[0].message}` : undefined),
+      color: result.added ? 'primary' : 'warning',
+      icon: 'i-lucide-check'
+    })
+    await refresh()
+  } catch (e: any) {
+    toast.add({ title: 'Import failed', description: e?.data?.statusMessage, color: 'error' })
+  } finally {
+    importing.value = false
+  }
+}
+const importExportMenu = [
+  [
+    { label: 'Export as JSON', icon: 'i-lucide-file-json', onSelect: () => exportDevices('json') },
+    { label: 'Export as CSV', icon: 'i-lucide-file-spreadsheet', onSelect: () => exportDevices('csv') }
+  ],
+  [
+    { label: 'Import…', icon: 'i-lucide-upload', onSelect: importDevices }
+  ]
+]
 
 const search = ref('')
 const categoryFilter = ref('all')
@@ -127,8 +171,13 @@ async function confirmDelete() {
 <template>
   <div>
     <PageHeader title="Devices" subtitle="Comprehensive inventory and status of all monitored assets" icon="i-lucide-server-crash">
-      <template #actions>
-        <UButton v-if="hasApp('monitoring')" icon="i-lucide-plus" size="sm" @click="openAdd">Add Device</UButton>
+      <template v-if="hasApp('monitoring')" #actions>
+        <div class="flex items-center gap-2">
+          <UDropdownMenu :items="importExportMenu" :content="{ align: 'end' }">
+            <UButton icon="i-lucide-import" color="neutral" variant="soft" size="sm" :loading="importing">Import / Export</UButton>
+          </UDropdownMenu>
+          <UButton icon="i-lucide-plus" size="sm" @click="openAdd">Add Device</UButton>
+        </div>
       </template>
     </PageHeader>
 

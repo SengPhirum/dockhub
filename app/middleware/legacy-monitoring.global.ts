@@ -7,6 +7,22 @@
 //
 // Docker's /networks routes are intentionally not matched (the guards require an
 // exact /net or a /net/ prefix, so /networks falls through untouched).
+//
+// A second wave of exact-path rewrites: Discovery, Maps, Groups, and Settings
+// used to be separate Network/Server pages and are now unified single pages
+// (each item tagged with a `type`/domain instead of living on its own route) -
+// see useNav.ts.
+const EXACT_REDIRECTS: Record<string, string> = {
+  '/monitoring/network/discovery': '/monitoring/discovery',
+  '/monitoring/server/discovery': '/monitoring/discovery',
+  '/monitoring/network/maps': '/monitoring/maps',
+  '/monitoring/server/maps': '/monitoring/maps',
+  '/monitoring/network/groups': '/monitoring/groups',
+  '/monitoring/server/groups': '/monitoring/groups',
+  '/monitoring/network/settings': '/monitoring/settings',
+  '/monitoring/server/settings': '/monitoring/settings'
+}
+
 export default defineNuxtRouteMiddleware((to) => {
   const p = to.path
   let mapped: string | null = null
@@ -15,6 +31,7 @@ export default defineNuxtRouteMiddleware((to) => {
   else if (p.startsWith('/net/')) mapped = '/monitoring/network' + p.slice(4)
   else if (p === '/server') mapped = '/monitoring/server'
   else if (p.startsWith('/server/')) mapped = '/monitoring/server' + p.slice(7)
+  else if (EXACT_REDIRECTS[p]) mapped = EXACT_REDIRECTS[p]
 
   if (mapped) return navigateTo({ path: mapped, query: to.query, hash: to.hash })
 })

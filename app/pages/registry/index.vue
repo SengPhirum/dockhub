@@ -255,7 +255,7 @@ const pageIcon = computed(() =>
         <UIcon name="i-lucide-container" class="size-7 text-beacon" />
         <h2 class="font-display text-lg font-semibold text-foam">No registries configured</h2>
         <p class="max-w-md text-sm text-(--color-muted)">Add a private registry's URL and credentials first, then browse its images here.</p>
-        <UButton class="mt-2" icon="i-lucide-plus" size="sm" to="/registries">Add a registry</UButton>
+        <UButton class="mt-2" icon="i-lucide-plus" size="sm" to="/docker/settings">Add a registry</UButton>
       </div>
 
       <div v-else class="space-y-4">
